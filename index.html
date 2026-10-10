@@ -342,6 +342,16 @@
   .searchrow{display:flex;gap:8px}
   .searchrow input{margin:0}
   .searchrow .btn{width:auto;padding:0 20px;box-shadow:none}
+
+  .fxl{position:fixed;inset:0;z-index:300;pointer-events:none;overflow:hidden}
+  .fxr{position:absolute;bottom:-20px;width:6px;height:26px;border-radius:3px;background:linear-gradient(#fff,#ffb020 60%,#ff4d2e);animation:fxrise var(--t,1s) ease-out forwards}
+  @keyframes fxrise{to{transform:translateY(var(--y));opacity:1}}
+  .fxp{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--c);animation:fxburst 1.1s ease-out forwards}
+  @keyframes fxburst{from{transform:translate(0,0) scale(1);opacity:1}to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+  .fxc{position:absolute;top:-16px;width:9px;height:14px;background:var(--c);animation:fxfall var(--t,3s) linear forwards}
+  @keyframes fxfall{to{transform:translate(var(--dx),110vh) rotate(var(--r));opacity:.9}}
+  .fxt{position:absolute;left:0;right:0;top:30%;text-align:center;font-size:34px;font-weight:900;color:#fff;text-shadow:0 3px 14px rgba(0,0,0,.5);animation:fxpop 2s ease-out forwards}
+  @keyframes fxpop{0%{transform:scale(.3);opacity:0}15%{transform:scale(1.15);opacity:1}80%{opacity:1}100%{transform:scale(1);opacity:0}}
 </style>
 </head>
 <body>
@@ -548,6 +558,23 @@ const wheelBtn=small=>(wSpins>0?`<button class="btn ${small?'sm':''}" data-wheel
 const WSEG=[['c10','10 🪙'],['none','Tack'],['c25','25 🪙'],['spin','Snurr'],['c10','10 🪙'],['round','Gratis omg.'],['c100','100 🪙'],['none','Tack']];
 const WMSG={c10:'Du vann 10 mynt!',c25:'Du vann 25 mynt!',c100:'JACKPOT! 100 mynt!',spin:'Ett gratis snurr till!',round:'En gratisomgång i Crazy Bingo!',none:'Tyvärr, ingen vinst den här gången.'};
 let wheelRot=0;
+function celebrate(lines,full){
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const L=el('div',{class:'fxl'});document.body.appendChild(L);
+  const cols=['#ffb020','#ff4d2e','#3ddc97','#4da3ff','#c77dff','#fff'];
+  const rocket=(x,delay)=>setTimeout(()=>{
+    const H=innerHeight, y=-(H*(.45+Math.random()*.25));
+    const r=el('div',{class:'fxr'});r.style.left=x+'%';r.style.setProperty('--y',y+'px');r.style.setProperty('--t','.8s');L.appendChild(r);
+    setTimeout(()=>{r.remove();const cx=x/100*innerWidth, cy=H+y, c=cols[Math.floor(Math.random()*cols.length)];
+      for(let i=0;i<26;i++){const p=el('div',{class:'fxp'});const a=i/26*6.283, d=70+Math.random()*60;
+        p.style.left=cx+'px';p.style.top=cy+'px';p.style.setProperty('--c',i%3?c:'#fff');p.style.setProperty('--dx',Math.cos(a)*d+'px');p.style.setProperty('--dy',Math.sin(a)*d+'px');L.appendChild(p)}
+    },800)},delay);
+  const n=full?5:Math.min(Math.max(lines,1),3);
+  for(let i=0;i<n;i++) rocket(full?15+i*17:(n===1?50:30+i*20),i*350);
+  if(full){setTimeout(()=>{for(let i=0;i<90;i++){const c=el('div',{class:'fxc'});c.style.left=Math.random()*100+'%';c.style.setProperty('--c',cols[i%cols.length]);c.style.setProperty('--dx',(Math.random()*160-80)+'px');c.style.setProperty('--r',(Math.random()*720)+'deg');c.style.setProperty('--t',(2.4+Math.random()*1.8)+'s');c.style.animationDelay=Math.random()*.8+'s';L.appendChild(c)}},700)}
+  L.appendChild(el('div',{class:'fxt'},full?'🎉 FULL BRICKA! 🎉':lines>1?'💥 '+lines+' BINGON! 💥':'🚀 BINGO!'));
+  setTimeout(()=>L.remove(),full?6000:2600);
+}
 function openWheel(){
   if(document.getElementById('wheelov')) return;
   const o=el('div',{class:'overlay center',id:'wheelov',onclick:e=>{if(e.target===o){o.remove();draw()}}});
@@ -1622,7 +1649,7 @@ function drawBingo(){
   root.querySelectorAll('[data-cclaim]').forEach(b=>b.onclick=async()=>{
     b.disabled=true;
     const {data,error}=await db.rpc('crazy_claim',{p_game:g.id,p_card:+b.dataset.cclaim});
-    if(!error&&data){const unit=g.practice?'poäng':'🪙';const m=(data.full?'🎉 FULL BRICKA! +1 snurr · ':'')+(data.lines>0?'+'+data.lines+(data.lines>1?' rader':' rad')+' · ':'')+'+'+(g.practice?data.coins+' poäng':'🪙 '+data.coins);const t=el('div',{class:'reminder-toast'},m);document.body.appendChild(t);setTimeout(()=>t.remove(),2600)}
+    if(!error&&data){const unit=g.practice?'poäng':'🪙';const m=(data.full?'🎉 FULL BRICKA! +1 snurr · ':'')+(data.lines>0?'+'+data.lines+(data.lines>1?' rader':' rad')+' · ':'')+'+'+(g.practice?data.coins+' poäng':'🪙 '+data.coins);const t=el('div',{class:'reminder-toast'},m);document.body.appendChild(t);setTimeout(()=>t.remove(),2600);celebrate(data.lines,data.full);if(data.full)setTimeout(()=>{if(wSpins>0)openWheel()},4500)}
     await loadBingo();await loadWallet();drawPlay();
   });
   if(g.status==='drawing'&&bgAuto&&g.mode!=='crazy'){const hit=bgCards.find(c=>bgLine(c.nums,new Set(g.drawn)));if(hit) claim(hit.id)}
