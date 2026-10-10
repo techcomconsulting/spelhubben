@@ -385,7 +385,7 @@ async function doSignup(ev){
   if(username.length<2){setNotice('err','Användarnamnet måste ha minst 2 tecken.');return showAuth()}
   if(password.length<8){setNotice('err','Lösenordet måste ha minst 8 tecken.');return showAuth()}
   document.getElementById('go').disabled=true;
-  const {data,error}=await db.auth.signUp({email,password,options:{data:{username,avatar:avatarChoice}}});
+  const {data,error}=await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+'/',data:{username,avatar:avatarChoice}}});
   if(error){const m=error.message||'';setNotice('err',m.includes('already')?'Den e-posten finns redan. Prova att logga in.':m.includes('Database error')?'Användarnamnet är upptaget. Välj ett annat.':'Något gick fel: '+m);return showAuth()}
   if(!data.session){mode='login';setNotice('ok','Konto skapat! Klicka på länken i mejlet och logga sedan in.');showAuth()}
 }
