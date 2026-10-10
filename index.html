@@ -725,14 +725,14 @@ function drawProfile(){
 
 
 /* ---------- STATISTIK ---------- */
-let myStats=null, board=null, historyRows=null, topCat='wins';
+let myStats=null, board=null, historyRows=null, topCat='wins', topGame='trumf', boardG={};
 const LEVELS=[[0,'Nybörjare','🥉'],[30,'Erfaren','🥈'],[100,'Proffs','🥇'],[250,'Mästare','💎'],[500,'Trumflegenden','👑']];
 function levelOf(p){let i=0;LEVELS.forEach((l,k)=>{if(p>=l[0])i=k});return {name:LEVELS[i][1],icon:LEVELS[i][2],next:LEVELS[i+1]||null}}
 const pct=(w,m)=>m?(w/m*100).toFixed(1).replace('.',',')+' %':'–';
 async function loadMyStats(){const {data}=await db.rpc('player_stats',{p_user:session.user.id});myStats=data}
 async function loadBoard(){const {data}=await db.rpc('leaderboard');board=data||[]}
 async function loadHistory(){const {data}=await db.rpc('my_history');historyRows=data||[]}
-function resetStats(){board=null;historyRows=null}
+function resetStats(){board=null;historyRows=null;boardG={}}
 function sortedBoard(cat){
   let r=[...(board||[])];
   if(cat==='pct') r=r.filter(x=>x.matches>=3).sort((a,b)=>b.wins/b.matches-a.wins/a.matches||b.matches-a.matches);
@@ -742,17 +742,31 @@ function sortedBoard(cat){
   return r;
 }
 function rankByWins(){const i=sortedBoard('wins').findIndex(x=>x.user_id===session.user.id);return i<0?null:i+1}
-function drawTop(){
+function drawTopTrumf(){
   if(board===null){root.innerHTML=`${brand}<p class="empty">Laddar topplistan…</p>`;loadBoard().then(()=>{if(page==='top')drawTop()});return}
   const cats=[['wins','🏆','Flest vinster'],['pct','📊','Vinstprocent'],['streak','🔥','Vinstsvit'],['level','⭐','Nivå']];
   const r=sortedBoard(topCat), myI=r.findIndex(x=>x.user_id===session.user.id);
   const val=x=>topCat==='wins'?x.wins+' vinster':topCat==='pct'?pct(x.wins,x.matches)+' · '+x.matches+' matcher':topCat==='streak'?x.best_streak+' i rad':levelOf(x.points).icon+' '+levelOf(x.points).name;
   const line=(x,i)=>`<div class="row" ${x.user_id===session.user.id?'style="background:var(--cream-dim);border-radius:14px;padding-left:8px;padding-right:8px"':''}><b style="width:26px;text-align:center">${i+1}</b><div class="av">${esc(x.avatar)}</div><div class="nm">${esc(x.username)}</div><span style="font-size:13px;color:var(--ink-soft);white-space:nowrap">${val(x)}</span></div>`;
-  root.innerHTML=`${brand}<h2 style="font-size:28px;margin-bottom:14px">Topplista</h2>
+  root.innerHTML=`${brand}${topTabs()}
     <div class="chips">${cats.map(c=>`<button data-c="${c[0]}" class="${topCat===c[0]?'on':''}">${c[1]} ${c[2]}</button>`).join('')}</div>
     <div class="panel">${r.length?r.slice(0,10).map(line).join('')+(myI>=10?`<div class="empty" style="padding:6px">···</div>${line(r[myI],myI)}`:''):`<div class="empty">${topCat==='pct'?'Spelare dyker upp här efter tre spelade matcher.':'Ingen har spelat klart en match ännu.'}</div>`}</div>
     ${myI<0&&r.length?`<p class="empty">Du syns här när du har spelat klart en match${topCat==='pct'?' (minst tre)':''}.</p>`:''}`;
   root.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{topCat=b.dataset.c;drawTop()});
+}
+const TOPG=[['trumf','Trumf'],['poker',"Hold'em"],['uno','UNO'],['bingo','Bingo'],['idiot','Idioten']];
+function topTabs(){return `<h2 style="font-size:28px;margin-bottom:14px">Topplista</h2><div class="chips">${TOPG.map(g=>`<button data-tg="${g[0]}" class="${topGame===g[0]?'on':''}">${g[1]}</button>`).join('')}</div>`}
+function bindTopTabs(){root.querySelectorAll('[data-tg]').forEach(b=>b.onclick=()=>{topGame=b.dataset.tg;drawTop()})}
+function drawTop(){
+  if(topGame==='trumf'){drawTopTrumf();bindTopTabs();return}
+  const rows=boardG[topGame];
+  if(!rows){root.innerHTML=`${brand}${topTabs()}<p class="empty">Laddar topplistan…</p>`;bindTopTabs();const g=topGame;db.rpc('leaderboard_game',{p_game:g}).then(r=>{boardG[g]=r.data||[];if(page==='top'&&topGame===g)drawTop()});return}
+  const r=[...rows].sort((a,b)=>b.wins-a.wins||b.wins/b.matches-a.wins/a.matches||b.matches-a.matches), myI=r.findIndex(x=>x.user_id===session.user.id);
+  const val=x=>`${x.wins} ${x.wins===1?'vinst':'vinster'} · ${x.matches} ${x.matches===1?'match':'matcher'}`+(topGame==='bingo'&&x.extra?` · 🪙 ${x.extra}`:'')+(topGame==='idiot'?` · bäst ${x.extra} kort`:'');
+  const line=(x,i)=>`<div class="row" ${x.user_id===session.user.id?'style="background:var(--cream-dim);border-radius:14px;padding-left:8px;padding-right:8px"':''}><b style="width:26px;text-align:center">${i+1}</b><div class="av">${esc(x.avatar)}</div><div class="nm">${esc(x.username)}</div><span style="font-size:13px;color:var(--ink-soft);text-align:right">${val(x)}</span></div>`;
+  root.innerHTML=`${brand}${topTabs()}<div class="panel">${r.length?r.slice(0,10).map(line).join('')+(myI>=10?`<div class="empty" style="padding:6px">···</div>${line(r[myI],myI)}`:''):`<div class="empty">Ingen har spelat klart en match ännu. Matcher mot bottar räknas inte${topGame==='idiot'?'':''}.</div>`}</div>
+  ${myI<0&&r.length?`<p class="empty">Du syns här när du har spelat klart en match.</p>`:''}`;
+  bindTopTabs();
 }
 function statTiles(st){
   const lv=levelOf(st.points);
