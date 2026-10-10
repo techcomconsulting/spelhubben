@@ -667,7 +667,7 @@ function drawLobby(){
     ${noticeHtml()}
     <div class="panel codebox"><small>Spelkod</small><b>${esc(t.code)}</b>
       <button class="btn" id="share">Bjud in</button></div>
-    ${t.game==='crazy'?`<div class="panel" style="text-align:center"><b>Pris per bricka 🪙 ${Math.max(t.stake,1)}</b><p class="empty" style="padding:4px 0 0">6 minuter, kulor var 6:e sekund. Varje bingo-rad ger mynt direkt, full bricka ger jackpot. Tryck BINGO! själv.</p></div>`:''}
+    ${t.game==='crazy'?`<div class="panel" style="text-align:center"><b>Pris per bricka 🪙 ${Math.max(t.stake,1)}</b><p class="empty" style="padding:4px 0 0">55 kulor, en var 6:e sekund (ca 5,5 min). Varje bingo-rad ger mynt direkt, full bricka ger jackpot. Tryck BINGO! själv.</p></div>`:''}
     ${t.game==='bingo'?`<div class="panel" style="text-align:center"><b>Pris per bricka 🪙 ${Math.max(t.stake,1)}</b><p class="empty" style="padding:4px 0 0">Vinnaren tar hela potten. Bingo genom stjärnan ⭐ dubblar vinsten.</p></div>`:''}
     ${t.game==='trumf'&&t.stake>0?`<div class="panel" style="text-align:center"><b>Insats 🪙 ${t.stake} per spelare</b><p class="empty" style="padding:4px 0 0">Pott 🪙 ${t.stake*Math.max(tablePlayers.length,1)} · 1:an får 80 %, 2:an 20 %. Du har 🪙 ${wallet??'–'}.</p></div>`:''}
     ${t.game==='poker'?`<div class="panel"><b>Din insats (mynt du tar med)</b><div class="tabs" style="margin-top:8px">${[20,50,100,200,500].map(n=>`<button type="button" data-bi="${n}" class="${(mine.buyin||50)===n?'on':''}" ${n>(wallet??0)?'disabled':''}>${n}</button>`).join('')}</div><p class="empty" style="padding:6px 0 0">Du har 🪙 ${wallet??'–'}. Det du har kvar när spelet slutar får du tillbaka.</p></div>`:''}
@@ -757,7 +757,7 @@ function drawCreate(){
       <div class="tabs">${(gameSel!=='trumf'?[2,3,4,5,6]:[2,3,4]).map(n=>`<button type="button" data-n="${n}" class="${newMax===n?'on':''}">${n}</button>`).join('')}</div>
       <label>Typ</label>
       <div class="tabs"><button type="button" data-pub="0" class="${!newPublic?'on':''}">Privat</button><button type="button" data-pub="1" class="${newPublic?'on':''}">Offentligt</button></div>
-      ${gameSel==='crazy'?`<label>Pris per bricka (mynt)</label><div class="tabs">${[5,10,20].map(n=>`<button type="button" data-stake="${n}" class="${newStake===n?'on':''}">${n}</button>`).join('')}</div><p class="empty" style="text-align:left;padding:6px 0 0">Rad = ${Math.max(1,Math.round(newStake*0.3))} mynt, full bricka = ${newStake*30} mynt. Spelet pågår i ca 6 minuter.</p>`:''}${gameSel==='bingo'?`<label>Pris per bricka (mynt)</label><div class="tabs">${[1,2,5,10].map(n=>`<button type="button" data-stake="${n}" class="${newStake===n?'on':''}">${n}</button>`).join('')}</div><p class="empty" style="text-align:left;padding:6px 0 0">Vinnaren får hela potten. Bingo genom stjärnan ⭐ i mitten dubblar vinsten.</p>`:''}${gameSel==='trumf'?`<label>Insats per spelare (mynt)</label><div class="tabs">${[0,10,20,50,100].map(n=>`<button type="button" data-stake="${n}" class="${newStake===n?'on':''}">${n===0?'Ingen':n}</button>`).join('')}</div><p class="empty" style="text-align:left;padding:6px 0 0">${newStake?'Alla lägger '+newStake+' mynt i potten. 1:an får 80 %, 2:an 20 %.':'Spela för äran, utan mynt.'}</p>`:''}
+      ${gameSel==='crazy'?`<label>Pris per bricka (mynt)</label><div class="tabs">${[5,10,20].map(n=>`<button type="button" data-stake="${n}" class="${newStake===n?'on':''}">${n}</button>`).join('')}</div><p class="empty" style="text-align:left;padding:6px 0 0">Rad = ${Math.max(1,Math.round(newStake*0.3))} mynt, full bricka = ${newStake*30} mynt. Spelet pågår i ca 5,5 minuter.</p>`:''}${gameSel==='bingo'?`<label>Pris per bricka (mynt)</label><div class="tabs">${[1,2,5,10].map(n=>`<button type="button" data-stake="${n}" class="${newStake===n?'on':''}">${n}</button>`).join('')}</div><p class="empty" style="text-align:left;padding:6px 0 0">Vinnaren får hela potten. Bingo genom stjärnan ⭐ i mitten dubblar vinsten.</p>`:''}${gameSel==='trumf'?`<label>Insats per spelare (mynt)</label><div class="tabs">${[0,10,20,50,100].map(n=>`<button type="button" data-stake="${n}" class="${newStake===n?'on':''}">${n===0?'Ingen':n}</button>`).join('')}</div><p class="empty" style="text-align:left;padding:6px 0 0">${newStake?'Alla lägger '+newStake+' mynt i potten. 1:an får 80 %, 2:an 20 %.':'Spela för äran, utan mynt.'}</p>`:''}
       <button class="btn" type="submit">Skapa bord</button></form>`;
   bindBack();
   const keep=()=>document.getElementById('tn').value;
@@ -1585,7 +1585,7 @@ function tickBingo(){
   } else if(bg.status==='drawing'&&bg.next_draw_at){
     const ms=new Date(bg.next_draw_at)-now;
     const bar=document.getElementById('bgbar'); if(bar) bar.style.width=Math.max(0,Math.min(100,100-ms/(bgIv()/100)))+'%';
-    const lf=document.getElementById('bgleft'); if(lf){const secs=Math.max(0,Math.ceil(((60-bg.drawn.length)*6000+Math.max(0,ms))/1000));lf.textContent='⏱ '+Math.floor(secs/60)+':'+String(secs%60).padStart(2,'0')}
+    const lf=document.getElementById('bgleft'); if(lf){const secs=Math.max(0,Math.ceil(((55-bg.drawn.length)*6000+Math.max(0,ms))/1000));lf.textContent='⏱ '+Math.floor(secs/60)+':'+String(secs%60).padStart(2,'0')}
     if(ms<=bgIv()/2&&bgHotKey!==bg.next_draw_at){bgHotKey=bg.next_draw_at;if(bgCards.length&&!bgAuto)drawPlay()}
     if(ms<=0&&now-bgLastTick>1500){bgLastTick=now;setTimeout(async()=>{const t0=Date.now();await db.rpc('bingo_tick',{p_game:bg.id});await new Promise(r=>setTimeout(r,700));if(bgLastEvt<t0){await loadBingo();if(page==='play')drawPlay()}},Math.random()*500)}
   }
@@ -1612,7 +1612,7 @@ function drawBingo(){
   const g=bg, me=bgMe();
   if(!me){root.innerHTML=`${brand}<p class="empty">Du är inte med i den här matchen.</p>`;return}
   if(g.status==='finished') return drawBingoFinal();
-  const top=g.mode==='crazy'?`<div class="bgtop"><span class="bgpill">${g.practice?'Gratis övning':'🪙 '+(bgWallet??'–')}${(me.won||0)>0?` <small style="color:var(--forest);font-weight:800">+${me.won}</small>`:''}</span><span class="bgpill gold" id="bgleft">${g.status==='buying'?'Pris 🪙 '+g.price:'⏱ 6:00'}</span></div>`:g.practice?`<div class="bgtop"><span class="bgpill">Gratis övning</span></div>`:`<div class="bgtop"><span class="bgpill">🪙 ${bgWallet??'–'}</span><span class="bgpill gold">Pott 🪙 ${g.pot}</span></div>`;
+  const top=g.mode==='crazy'?`<div class="bgtop"><span class="bgpill">${g.practice?'Gratis övning':'🪙 '+(bgWallet??'–')}${(me.won||0)>0?` <small style="color:var(--forest);font-weight:800">+${me.won}</small>`:''}</span><span class="bgpill gold" id="bgleft">${g.status==='buying'?'Pris 🪙 '+g.price:'⏱ 5:30'}</span></div>`:g.practice?`<div class="bgtop"><span class="bgpill">Gratis övning</span></div>`:`<div class="bgtop"><span class="bgpill">🪙 ${bgWallet??'–'}</span><span class="bgpill gold">Pott 🪙 ${g.pot}</span></div>`;
   let mid='';
   if(g.status==='buying'){
     const doneN=bgp.filter(p=>p.bought).length;
@@ -1627,7 +1627,7 @@ function drawBingo(){
     mid=`<div class="bgball ${last?'b'+bgLetter(last):''} ${(last&&bgAnimBall!==g.id+'-'+last)?'anim':''}" key="${last}">${last?`<small>${bgLetter(last)}</small><b>${last}</b>`:'<b>…</b>'}</div>
       <div class="bgprev">${prev.map(n=>`<span class="pb b${bgLetter(n)}">${bgLetter(n)}${n}</span>`).join('')}</div>
       <div class="timer" style="margin:12px 0"><div id="bgbar" style="height:100%;background:var(--gold)"></div></div>
-      <p class="idtxt" style="text-align:center;margin:0 0 10px">${g.drawn.length} av ${g.mode==='crazy'?60:75} ${g.mode==='crazy'?'kulor':'tal'}</p>`;
+      <p class="idtxt" style="text-align:center;margin:0 0 10px">${g.drawn.length} av ${g.mode==='crazy'?55:75} ${g.mode==='crazy'?'kulor':'tal'}</p>`;
   }
   const solo=bgCards.length===1;
   const cards=bgCards.length?`<div class="bcards ${solo?'one':''}">${bgCards.map(c=>bgCardHtml(c,solo)).join('')}</div>`:(g.status==='drawing'?'<p class="empty">Du tittar på den här omgången.</p>':'');
