@@ -1398,26 +1398,28 @@ function watchBingo(){
   stopGameChan();
   const id=bg.id, f='game_id=eq.'+id;
   const on=()=>{clearTimeout(bgLoadT);bgLoadT=setTimeout(async()=>{await loadBingo();if(curTable&&curTable.status==='playing'&&bg&&bg.status==='finished'){await loadMyTable()}if(page==='play')drawPlay()},60)};
+  const onG=p=>{bgLastEvt=Date.now();const n=p&&p.new;
+    if(n&&n.id===id&&bg&&bg.id===id&&n.status===bg.status&&n.status!=='finished'){bg=Object.assign({},bg,n);if(page==='play')drawPlay()} else on()};
   bgChan=db.channel('bingo-'+id)
-    .on('postgres_changes',{event:'*',schema:'public',table:'bingo_games',filter:'id=eq.'+id},on)
+    .on('postgres_changes',{event:'*',schema:'public',table:'bingo_games',filter:'id=eq.'+id},onG)
     .on('postgres_changes',{event:'*',schema:'public',table:'bingo_players',filter:f},on)
     .on('postgres_changes',{event:'*',schema:'public',table:'bingo_cards',filter:f},on)
     .subscribe();
   bgChan._gid=id;
   bgTick=setInterval(tickBingo,300);
 }
-let bgLastTick=0;
+let bgLastTick=0,bgLastEvt=0;
 function tickBingo(){
   if(!bg||page!=='play') return;
   const now=Date.now();
   if(bg.status==='buying'&&bg.buy_deadline){
     const left=Math.max(0,Math.ceil((new Date(bg.buy_deadline)-now)/1000));
     const el=document.getElementById('bgcd'); if(el) el.textContent=left+' s';
-    if(left<=0&&now-bgLastTick>1500){bgLastTick=now;setTimeout(async()=>{await db.rpc('bingo_tick',{p_game:bg.id});await loadBingo();if(page==='play')drawPlay()},Math.random()*400)}
+    if(left<=0&&now-bgLastTick>1500){bgLastTick=now;setTimeout(async()=>{const t0=Date.now();await db.rpc('bingo_tick',{p_game:bg.id});await new Promise(r=>setTimeout(r,700));if(bgLastEvt<t0){await loadBingo();if(page==='play')drawPlay()}},Math.random()*400)}
   } else if(bg.status==='drawing'&&bg.next_draw_at){
     const ms=new Date(bg.next_draw_at)-now;
     const bar=document.getElementById('bgbar'); if(bar) bar.style.width=Math.max(0,Math.min(100,100-ms/40))+'%';
-    if(ms<=0&&now-bgLastTick>1500){bgLastTick=now;setTimeout(async()=>{await db.rpc('bingo_tick',{p_game:bg.id});await loadBingo();if(page==='play')drawPlay()},Math.random()*500)}
+    if(ms<=0&&now-bgLastTick>1500){bgLastTick=now;setTimeout(async()=>{const t0=Date.now();await db.rpc('bingo_tick',{p_game:bg.id});await new Promise(r=>setTimeout(r,700));if(bgLastEvt<t0){await loadBingo();if(page==='play')drawPlay()}},Math.random()*500)}
   }
 }
 function bgCardHtml(c,solo){
