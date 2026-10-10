@@ -1406,18 +1406,18 @@ function watchBingo(){
   bgChan._gid=id;
   bgTick=setInterval(tickBingo,300);
 }
+let bgLastTick=0;
 function tickBingo(){
   if(!bg||page!=='play') return;
   const now=Date.now();
   if(bg.status==='buying'&&bg.buy_deadline){
     const left=Math.max(0,Math.ceil((new Date(bg.buy_deadline)-now)/1000));
     const el=document.getElementById('bgcd'); if(el) el.textContent=left+' s';
-    if(left<=0&&bgTickKey!=='b'+bg.buy_deadline){bgTickKey='b'+bg.buy_deadline;setTimeout(()=>db.rpc('bingo_tick',{p_game:bg.id}),Math.random()*400)}
+    if(left<=0&&now-bgLastTick>1500){bgLastTick=now;setTimeout(async()=>{await db.rpc('bingo_tick',{p_game:bg.id});await loadBingo();if(page==='play')drawPlay()},Math.random()*400)}
   } else if(bg.status==='drawing'&&bg.next_draw_at){
     const ms=new Date(bg.next_draw_at)-now;
     const bar=document.getElementById('bgbar'); if(bar) bar.style.width=Math.max(0,Math.min(100,100-ms/40))+'%';
-    const key='d'+bg.next_draw_at;
-    if(ms<=0&&bgTickKey!==key){bgTickKey=key;setTimeout(()=>db.rpc('bingo_tick',{p_game:bg.id}),Math.random()*500)}
+    if(ms<=0&&now-bgLastTick>1500){bgLastTick=now;setTimeout(async()=>{await db.rpc('bingo_tick',{p_game:bg.id});await loadBingo();if(page==='play')drawPlay()},Math.random()*500)}
   }
 }
 function bgCardHtml(c,solo){
