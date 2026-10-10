@@ -440,6 +440,7 @@ function drawHome(){
   document.getElementById('goplay').onclick=()=>{gameSel='trumf';go('play')};
   root.insertAdjacentHTML('beforeend',feedbackLink());
   bindInstall();
+  const tt=document.getElementById('gotown'); if(tt) tt.addEventListener('click',()=>{db.rpc('track_click',{p_target:'techtown'})});
   document.getElementById('goidiot').onclick=()=>{gameSel='idiot';playView='menu';go('play')};
   document.getElementById('gouno').onclick=()=>{gameSel='uno';go('play')};
   document.getElementById('gopoker').onclick=()=>{gameSel='poker';go('play')};
@@ -1299,7 +1300,7 @@ function openFeedback(){
 /* ---------- ADMIN ---------- */
 let isAdm=false, admData=null, admTab='over';
 const admFmt=d=>new Date(d).toLocaleDateString('sv-SE',{day:'numeric',month:'short'})+' '+new Date(d).toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'});
-async function loadAdmin(){const {data,error}=await db.rpc('admin_overview');admData=error?{error:true}:data}
+async function loadAdmin(){const [a,c]=await Promise.all([db.rpc('admin_overview'),db.rpc('admin_clicks')]);admData=a.error?{error:true}:{...a.data,clicks:(c&&c.data)||null}}
 function drawAdmin(){
   if(!isAdm){page='profile';return draw()}
   if(!admData){root.innerHTML=`${brand}<p class="empty">Laddar…</p>`;loadAdmin().then(()=>{if(page==='admin')drawAdmin()});return}
@@ -1311,7 +1312,7 @@ function drawAdmin(){
   if(admTab==='over'){
     body=`<div class="stats" style="grid-template-columns:repeat(3,1fr)">${tile(d.users,'Användare')}${tile(d.new7,'Nya 7 dagar')}${tile(onl,'Online nu')}</div>
     <div class="stats" style="grid-template-columns:repeat(3,1fr)">${tile(d.games7,'Spel 7 dagar')}${tile(d.open_tables,'Öppna bord')}${tile(d.chat_msgs,'Chattar')}</div>
-    <h3 class="h">Spel (totalt startade)</h3><div class="panel">${gameRow('Trumf',d.trumf)}${gameRow("Texas Hold'em",d.poker)}${gameRow('UNO',d.uno)}${gameRow('Idioten',d.idiot)}</div>`;
+    ${d.clicks?`<h3 class="h">Techtown</h3><div class="stats" style="grid-template-columns:repeat(3,1fr)">${tile(d.clicks.techtown.total,'Klick totalt')}${tile(d.clicks.techtown.users,'Olika personer')}${tile(d.clicks.techtown.d7,'Senaste 7 dagar')}</div>${d.clicks.techtown.last.length?`<div class="panel">${d.clicks.techtown.last.map(x=>`<div class="row"><div class="nm">${esc(x.username)}<small>${admFmt(x.created_at)}</small></div></div>`).join('')}</div>`:''}`:''}<h3 class="h">Spel (totalt startade)</h3><div class="panel">${gameRow('Trumf',d.trumf)}${gameRow("Texas Hold'em",d.poker)}${gameRow('UNO',d.uno)}${gameRow('Idioten',d.idiot)}</div>`;
   } else if(admTab==='users'){
     body=`<div class="panel">${d.users_list.map(u=>`<div class="row"><div class="av">${esc(u.avatar||'')}</div><div class="nm">${esc(u.username)}<small>Gick med ${admFmt(u.created_at)}</small></div></div>`).join('')||'<p class="empty">Inga användare.</p>'}</div>`;
   } else {
