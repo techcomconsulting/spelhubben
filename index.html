@@ -352,6 +352,8 @@
   @keyframes fxfall{to{transform:translate(var(--dx),110vh) rotate(var(--r));opacity:.9}}
   .fxt{position:absolute;left:0;right:0;top:30%;text-align:center;font-size:34px;font-weight:900;color:#fff;text-shadow:0 3px 14px rgba(0,0,0,.5);animation:fxpop 2s ease-out forwards}
   @keyframes fxpop{0%{transform:scale(.3);opacity:0}15%{transform:scale(1.15);opacity:1}80%{opacity:1}100%{transform:scale(1);opacity:0}}
+  .bbingo{background:linear-gradient(90deg,#ff4d6d,#ffb020,#3ddc97,#4da3ff,#c77dff,#ff4d6d)!important;background-size:300% 100%!important;color:#fff!important;border:none!important;font-weight:900;letter-spacing:.5px;text-shadow:0 2px 6px rgba(0,0,0,.35);box-shadow:0 6px 18px rgba(199,125,255,.45);animation:pulse 1s infinite,bgrainbow 3s linear infinite!important}
+  @keyframes bgrainbow{to{background-position:300% 0}}
 </style>
 </head>
 <body>
@@ -1597,8 +1599,8 @@ function bgCardHtml(c,solo){
   let btn='';
   if(bg.status==='drawing'){
     if(crazy){const n=bgCountLines(c.nums,msk)-(c.paid_lines||0), fl=bgFull(c.nums,msk)&&!c.full_paid;
-      if(n>0||fl) btn=`<button class="btn bbingo" data-cclaim="${c.id}">${fl?'FULL BRICKA!':'BINGO!'}${n>0?` +${n} ${n>1?'rader':'rad'}`:''}</button>`}
-    else if(line) btn=`<button class="btn bbingo" data-claim="${c.id}">BINGO!</button>`;
+      if(n>0||fl) btn=`<button class="btn bbingo" data-cclaim="${c.id}">${fl?'🎉 FULL BRICKA! 🎉':'🚀 BINGO!'}${n>0?` +${n} ${n>1?'rader':'rad'}`:''}</button>`}
+    else if(line) btn=`<button class="btn bbingo" data-claim="${c.id}">🎉 BINGO! 🎉</button>`;
   }
   const cells=c.nums.map((n,i)=>{
     if(n===0) return `<div class="bc free">★</div>`;
