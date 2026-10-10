@@ -259,6 +259,11 @@
   .instx{border:none;background:var(--cream-dim);width:34px;height:34px;border-radius:50%;cursor:pointer;color:var(--ink);font-size:14px}
   .inststeps{margin:0 0 12px;padding-left:20px;line-height:1.6;font-size:14px}
   .inst .btn{padding:13px}
+  .fbl{text-align:center;margin:18px 0 6px}
+  .fbopen{border:none;background:none;color:var(--ink-soft);font-size:13px;font-family:inherit;cursor:pointer;padding:8px 12px;border-radius:999px;opacity:.8}
+  .fbopen:hover{background:var(--cream-dim);opacity:1}
+  #fbtxt{width:100%;border:1px solid var(--felt-edge);border-radius:16px;padding:12px;font-size:16px;font-family:inherit;background:var(--cream);color:var(--ink);resize:vertical}
+  #fbov .btn{margin-top:8px}
   .slot{width:44px;height:64px;border:1.5px dashed #b9ad8c;border-radius:8px}
   .mini{display:flex;gap:2px;min-height:34px}
   .pc.xs{width:24px;height:34px;font-size:11px;padding:2px;border-radius:5px}
@@ -430,6 +435,7 @@ function drawHome(){
       <div class="stat"><b>${rk?'#'+rk:'–'}</b><span>Ranking</span></div></div>`})():'<p class="empty">Laddar…</p>'}`;
   bindFriendActs();
   document.getElementById('goplay').onclick=()=>{gameSel='trumf';go('play')};
+  root.insertAdjacentHTML('beforeend',feedbackLink());
   bindInstall();
   document.getElementById('goidiot').onclick=()=>{gameSel='idiot';playView='menu';go('play')};
   document.getElementById('gouno').onclick=()=>{gameSel='uno';go('play')};
@@ -653,6 +659,7 @@ function drawProfile(){
   if(historyRows===null){loadHistory().then(()=>{if(page==='profile')drawProfile()})}
   root.querySelectorAll('[data-gid]').forEach(b=>b.onclick=()=>showMatch(b.dataset.gid));
   bindAvatars(a=>{const v=document.getElementById('nu').value;editAv=a;drawProfile();document.getElementById('nu').value=v});
+  root.insertAdjacentHTML('beforeend',feedbackLink());
   document.getElementById('out').onclick=()=>db.auth.signOut();
   document.getElementById('save').onclick=async()=>{
     const username=document.getElementById('nu').value.trim();
@@ -1260,6 +1267,28 @@ function bindInstall(){
   go.onclick=async()=>{
     if(deferredInstall){deferredInstall.prompt();try{await deferredInstall.userChoice}catch(e){}deferredInstall=null;try{localStorage.setItem('instNo','1')}catch(e){}draw()}
     else if(isIOS()){ if(instSteps){try{localStorage.setItem('instNo','1')}catch(e){}} instSteps=!instSteps; draw() }
+  };
+}
+
+/* ---------- TIPSA OM FÖRBÄTTRINGAR ---------- */
+const feedbackLink=()=>'<p class="fbl"><button class="fbopen" type="button">💡 Tipsa om en idé</button></p>';
+document.addEventListener('click',e=>{if(e.target.closest('.fbopen'))openFeedback()});
+function openFeedback(){
+  if(document.getElementById('fbov')) return;
+  const o=document.createElement('div'); o.className='ovl'; o.id='fbov';
+  o.innerHTML=`<div class="ovlbox" role="dialog" aria-label="Tipsa om en idé"><h3>💡 Tipsa om en idé</h3><p class="idtxt" style="margin:6px 0 12px">Vad kan bli bättre, eller vilken funktion saknar du?</p><textarea id="fbtxt" maxlength="1000" rows="5" placeholder="Skriv här…"></textarea><div id="fbmsg" class="idtxt" style="min-height:22px"></div><button class="btn" id="fbsend">Skicka</button><button class="btn ghost" id="fbx">Stäng</button></div>`;
+  document.body.appendChild(o);
+  const close=()=>o.remove(), t=document.getElementById('fbtxt'); t.focus();
+  document.getElementById('fbx').onclick=close;
+  o.onclick=ev=>{if(ev.target===o)close()};
+  document.getElementById('fbsend').onclick=async()=>{
+    const v=t.value.trim(), m=document.getElementById('fbmsg');
+    if(v.length<3){m.textContent='Skriv lite mer, tack.';return}
+    document.getElementById('fbsend').disabled=true;
+    const {error}=await db.rpc('send_feedback',{p_body:v,p_page:page});
+    if(error){m.textContent='Det gick inte att skicka just nu. Försök igen om en stund.';document.getElementById('fbsend').disabled=false;return}
+    o.querySelector('.ovlbox').innerHTML='<div style="font-size:44px">🙏</div><h3>Tack!</h3><p class="idtxt">Din idé är skickad.</p><button class="btn" id="fbok">Stäng</button>';
+    document.getElementById('fbok').onclick=close; setTimeout(close,3500);
   };
 }
 
