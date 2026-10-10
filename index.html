@@ -509,7 +509,7 @@ const inviteLink=c=>location.origin+location.pathname+'?bord='+encodeURIComponen
 function dismissedId(){try{return localStorage.getItem('dismissedTable')}catch(e){return null}}
 function dismissTable(id){try{localStorage.setItem('dismissedTable',id)}catch(e){}}
 async function loadMyTable(){
-  const {data}=await db.from('table_players').select('table_id,tables!inner(id,code,name,game,is_public,max_players,owner_id,status,created_at)').eq('user_id',session.user.id).in('tables.status',['lobby','playing','finished']).order('joined_at',{ascending:false}).limit(1);
+  const {data}=await db.from('table_players').select('table_id,tables!inner(id,code,name,game,is_public,max_players,owner_id,status,created_at,stake)').eq('user_id',session.user.id).in('tables.status',['lobby','playing','finished']).order('joined_at',{ascending:false}).limit(1);
   const t=data&&data[0]&&data[0].tables;
   if(!t||(t.status==='finished'&&dismissedId()===t.id)){ stopTableChan(); stopGameChan(); curTable=null; tablePlayers=[]; game=null; pk=null; un=null; bg=null; return }
   curTable=t; await loadPlayers(); watchTable();
