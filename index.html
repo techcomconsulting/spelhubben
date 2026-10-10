@@ -363,10 +363,20 @@ function showAuth(){
         ${mode==='signup'?`<label for="u">Användarnamn</label><input id="u" maxlength="20" autocomplete="nickname" placeholder="T.ex. Martin">`:''}
         <label for="e">E-post</label><input id="e" type="email" autocomplete="email" inputmode="email">
         <label for="p">Lösenord</label><input id="p" type="password" autocomplete="${mode==='signup'?'new-password':'current-password'}" placeholder="Minst 8 tecken">
+        <label class="chk" style="margin:8px 0 0"><input type="checkbox" id="showpw"> Visa lösenordet</label>
         ${mode==='signup'?`<label>Välj avatar</label>${avatarPicker(avatarChoice)}`:''}
         <button class="btn" id="go" type="submit">${mode==='login'?'Logga in':'Skapa konto'}</button>
+        ${mode==='login'?'<p style="text-align:center;margin:14px 0 0"><button type="button" class="btn sm ghost" id="forgot" style="width:auto">Glömt lösenord?</button></p>':''}
       </form>
     </div>`;
+  document.getElementById('showpw').onchange=ev=>{document.getElementById('p').type=ev.target.checked?'text':'password'};
+  const fg=document.getElementById('forgot'); if(fg) fg.onclick=async()=>{
+    const email=document.getElementById('e').value.trim();
+    if(!email){setNotice('err','Skriv din e-post först, tryck sedan på Glömt lösenord.');return showAuth()}
+    const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+'/'});
+    if(error){setNotice('err','Det gick inte att skicka mejlet just nu. Försök igen om en stund.');return showAuth()}
+    setNotice('ok','Vi har skickat ett mejl. Klicka på länken i det för att välja nytt lösenord.');showAuth();
+  };
   document.getElementById('tLogin').onclick=()=>{mode='login';notice=null;showAuth()};
   document.getElementById('tSignup').onclick=()=>{mode='signup';notice=null;showAuth()};
   if(mode==='signup') bindAvatars(a=>{const u=document.getElementById('u').value,e=document.getElementById('e').value;avatarChoice=a;showAuth();document.getElementById('u').value=u;document.getElementById('e').value=e});
@@ -1526,11 +1536,28 @@ function drawBingoFinal(){
   document.getElementById('done').onclick=()=>{dismissTable(curTable.id);stopGameChan();stopTableChan();curTable=null;bg=null;bgMarks={};bgClaimed={};playView='menu';drawPlay()};
 }
 
+function showRecovery(){
+  nav.hidden=true;
+  root.innerHTML=`${brand}<div class="hero"><h1>Nytt lösenord</h1><p>Välj ett nytt lösenord.</p></div><div class="panel">${noticeHtml()}<form id="rf" novalidate>
+    <label for="np">Nytt lösenord</label><input id="np" type="password" autocomplete="new-password" placeholder="Minst 8 tecken">
+    <button class="btn" type="submit">Spara lösenord</button></form></div>`;
+  document.getElementById('rf').onsubmit=async ev=>{
+    ev.preventDefault();
+    const pw=document.getElementById('np').value;
+    if(pw.length<8){setNotice('err','Lösenordet måste ha minst 8 tecken.');return showRecovery()}
+    const {error}=await db.auth.updateUser({password:pw});
+    if(error){setNotice('err','Det gick inte att spara. Försök igen.');return showRecovery()}
+    recovering=false;notice=null;const {data}=await db.auth.getSession();if(data.session) boot(data.session);
+  };
+}
+let recovering=(location.hash||'').includes('type=recovery');
 db.auth.onAuthStateChange((ev,s)=>{
+  if(ev==='PASSWORD_RECOVERY'){recovering=true;session=null;showRecovery();return}
+  if(recovering) return;
   if(s){ if(!session||session.user.id!==s.user.id) boot(s); else session=s }
   else { session=null;me=null;editAv=null;page='home';curTable=null;tablePlayers=[];pk=null;un=null;bg=null;idLoaded=false;idg=null;isAdm=false;admData=null;if(frChan){db.removeChannel(frChan);frChan=null}stopTableChan(); if(presence){db.removeChannel(presence);presence=null} showAuth() }
 });
-db.auth.getSession().then(({data})=>{if(!data.session)showAuth()});
+db.auth.getSession().then(({data})=>{if(!data.session)showAuth();else if(recovering)showRecovery()});
 </script>
 </body>
 </html>
