@@ -355,6 +355,16 @@
   .bbingo{background:linear-gradient(90deg,#ff4d6d,#ffb020,#3ddc97,#4da3ff,#c77dff,#ff4d6d)!important;background-size:300% 100%!important;color:#fff!important;border:none!important;font-weight:900;letter-spacing:.5px;text-shadow:0 2px 6px rgba(0,0,0,.35);box-shadow:0 6px 18px rgba(199,125,255,.45);animation:pulse 1s infinite,bgrainbow 3s linear infinite!important}
   @keyframes bgrainbow{to{background-position:300% 0}}
   .fxl .fxr{animation-duration:var(--t,1s)!important}.fxl .fxp{animation-duration:1.1s!important}.fxl .fxc{animation-duration:var(--t,3s)!important}.fxl .fxt{animation-duration:2s!important}
+  .bgrow{display:flex;align-items:center;gap:12px;margin:0 0 6px}
+  .bgrow .bgball{width:72px;height:72px;margin:0;flex:none;box-shadow:inset -5px -6px 12px rgba(0,0,0,.25),0 6px 14px var(--shadow)}
+  .bgrow .bgball small{font-size:13px}.bgrow .bgball b{font-size:30px}
+  .bgside{flex:1;min-width:0}.bgside .bgprev{justify-content:flex-start;gap:4px}.bgside .pb{font-size:11px;padding:3px 7px}
+  .bgside .idtxt{margin:6px 0 0!important;text-align:left!important;font-size:12px}
+  .bgtop.c{margin:0 0 6px}.bgtop.c .bgpill{padding:5px 12px;font-size:14px}
+  .bgopts.c{margin:4px 0 8px}.bgopts.c .btn{padding:6px 10px;font-size:13px}
+  .bcards.many{gap:6px}.bcards.many .bcard{padding:5px;border-radius:12px}.bcards.many .bgrid{gap:2px}
+  .bcards.many .bc{font-size:12px;border-radius:6px}.bcards.many .bhead{font-size:12px;margin-bottom:2px}
+  .bcards.many .bbingo{margin-top:4px;padding:7px;font-size:13px}
 </style>
 </head>
 <body>
@@ -1614,7 +1624,7 @@ function drawBingo(){
   const g=bg, me=bgMe();
   if(!me){root.innerHTML=`${brand}<p class="empty">Du är inte med i den här matchen.</p>`;return}
   if(g.status==='finished') return drawBingoFinal();
-  const top=g.mode==='crazy'?`<div class="bgtop"><span class="bgpill">${g.practice?'Gratis övning':'🪙 '+(bgWallet??'–')}${(me.won||0)>0?` <small style="color:var(--forest);font-weight:800">+${me.won}</small>`:''}</span><span class="bgpill gold" id="bgleft">${g.status==='buying'?'Pris 🪙 '+g.price:'⏱ 5:30'}</span></div>`:g.practice?`<div class="bgtop"><span class="bgpill">Gratis övning</span></div>`:`<div class="bgtop"><span class="bgpill">🪙 ${bgWallet??'–'}</span><span class="bgpill gold">Pott 🪙 ${g.pot}</span></div>`;
+  const top=g.mode==='crazy'?`<div class="bgtop c"><span class="bgpill">${g.practice?'Gratis övning':'🪙 '+(bgWallet??'–')}${(me.won||0)>0?` <small style="color:var(--forest);font-weight:800">+${me.won}</small>`:''}</span><span class="bgpill gold" id="bgleft">${g.status==='buying'?'Pris 🪙 '+g.price:'⏱ 5:30'}</span></div>`:g.practice?`<div class="bgtop c"><span class="bgpill">Gratis övning</span></div>`:`<div class="bgtop c"><span class="bgpill">🪙 ${bgWallet??'–'}</span><span class="bgpill gold">Pott 🪙 ${g.pot}</span></div>`;
   let mid='';
   if(g.status==='buying'){
     const doneN=bgp.filter(p=>p.bought).length;
@@ -1626,15 +1636,15 @@ function drawBingo(){
       <button class="btn ghost" id="bskip">Titta bara</button></div>`;
   } else {
     const last=g.last_ball, prev=g.drawn.slice(0,-1).slice(-6).reverse();
-    mid=`<div class="bgball ${last?'b'+bgLetter(last):''} ${(last&&bgAnimBall!==g.id+'-'+last)?'anim':''}" key="${last}">${last?`<small>${bgLetter(last)}</small><b>${last}</b>`:'<b>…</b>'}</div>
-      <div class="bgprev">${prev.map(n=>`<span class="pb b${bgLetter(n)}">${bgLetter(n)}${n}</span>`).join('')}</div>
-      <div class="timer" style="margin:12px 0"><div id="bgbar" style="height:100%;background:var(--gold)"></div></div>
-      <p class="idtxt" style="text-align:center;margin:0 0 10px">${g.drawn.length} av ${g.mode==='crazy'?55:75} ${g.mode==='crazy'?'kulor':'tal'}</p>`;
+    mid=`<div class="bgrow"><div class="bgball ${last?'b'+bgLetter(last):''} ${(last&&bgAnimBall!==g.id+'-'+last)?'anim':''}" key="${last}">${last?`<small>${bgLetter(last)}</small><b>${last}</b>`:'<b>…</b>'}</div>
+      <div class="bgside"><div class="bgprev">${prev.map(n=>`<span class="pb b${bgLetter(n)}">${bgLetter(n)}${n}</span>`).join('')}</div>
+      <p class="idtxt">${g.drawn.length} av ${g.mode==='crazy'?55:75} ${g.mode==='crazy'?'kulor':'tal'}</p></div></div>
+      <div class="timer" style="margin:0 0 8px"><div id="bgbar" style="height:100%;background:var(--gold)"></div></div>`;
   }
   const solo=bgCards.length===1;
-  const cards=bgCards.length?`<div class="bcards ${solo?'one':''}">${bgCards.map(c=>bgCardHtml(c,solo)).join('')}</div>`:(g.status==='drawing'?'<p class="empty">Du tittar på den här omgången.</p>':'');
+  const cards=bgCards.length?`<div class="bcards ${solo?'one':(bgCards.length>2?'many':'')}">${bgCards.map(c=>bgCardHtml(c,solo)).join('')}</div>`:(g.status==='drawing'?'<p class="empty">Du tittar på den här omgången.</p>':'');
   const oth=bgp.filter(p=>p.user_id!==me.user_id).map(p=>{const pr=p.profiles||{},b=bgProg[p.user_id]||0;return `<div class="bgo2"><span>${esc(pr.avatar||'')} <b>${esc(pr.username||'')}</b> · ${p.cards} ${p.cards===1?'bricka':'brickor'}${g.mode==='crazy'&&p.won>0?' · '+(g.practice?p.won+' p':'🪙 '+p.won):''}</span>${g.mode!=='crazy'&&g.status==='drawing'&&p.cards?`<span class="dots" aria-label="${b} av 5 i rad">${[1,2,3,4,5].map(i=>`<i class="${i<=b?'on':''}"></i>`).join('')}</span>`:''}</div>`}).join('');
-  root.innerHTML=`${brand}${top}${g.mode==='crazy'?wheelBtn(true):''}${mid}${g.status==='drawing'?`<div class="bgopts"><label class="chk"><input type="checkbox" id="bauto" ${bgAuto?'checked':''}> Markera automatiskt</label><button class="btn sm ghost" id="bcall">${bgCalled?'Dölj':'Visa'} utropade tal</button></div>`:''}
+  root.innerHTML=`${g.status==='drawing'?'':brand}${top}${g.mode==='crazy'?wheelBtn(true):''}${mid}${g.status==='drawing'?`<div class="bgopts c"><label class="chk"><input type="checkbox" id="bauto" ${bgAuto?'checked':''}> Markera automatiskt</label><button class="btn sm ghost" id="bcall">${bgCalled?'Dölj':'Visa'} utropade tal</button></div>`:''}
     ${bgCalled&&g.status==='drawing'?`<div class="bcalled">${BL.map((l,ci)=>`<div><b>${l}</b>${Array.from({length:15},(_,k)=>ci*15+k+1).map(n=>`<span class="${g.drawn.includes(n)?'d':''}">${n}</span>`).join('')}</div>`).join('')}</div>`:''}
     ${cards}<div class="bgothers">${oth}</div>
     <p style="text-align:center;margin-top:12px"><button class="btn sm ghost" id="endg">Avsluta matchen</button></p>`;
