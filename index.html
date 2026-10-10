@@ -563,6 +563,7 @@ function drawLobby(){
     ${noticeHtml()}
     <div class="panel codebox"><small>Spelkod</small><b>${esc(t.code)}</b>
       <button class="btn" id="share">Bjud in</button></div>
+    ${t.game==='bingo'?`<div class="panel" style="text-align:center"><b>Pris per bricka 🪙 ${Math.max(t.stake,1)}</b><p class="empty" style="padding:4px 0 0">Vinnaren tar hela potten. Bingo genom stjärnan ⭐ dubblar vinsten.</p></div>`:''}
     ${t.game==='trumf'&&t.stake>0?`<div class="panel" style="text-align:center"><b>Insats 🪙 ${t.stake} per spelare</b><p class="empty" style="padding:4px 0 0">Pott 🪙 ${t.stake*Math.max(tablePlayers.length,1)} · 1:an får 80 %, 2:an 20 %. Du har 🪙 ${wallet??'–'}.</p></div>`:''}
     ${t.game==='poker'?`<div class="panel"><b>Din insats (mynt du tar med)</b><div class="tabs" style="margin-top:8px">${[20,50,100,200,500].map(n=>`<button type="button" data-bi="${n}" class="${(mine.buyin||50)===n?'on':''}" ${n>(wallet??0)?'disabled':''}>${n}</button>`).join('')}</div><p class="empty" style="padding:6px 0 0">Du har 🪙 ${wallet??'–'}. Det du har kvar när spelet slutar får du tillbaka.</p></div>`:''}
     <div class="panel">${seatsHtml()}</div>
@@ -603,15 +604,13 @@ async function showBingoStats(){
 }
 function drawBot(){
   root.innerHTML=`${brand}${backBtn()}<h2 style="font-size:28px;margin-bottom:8px">Spela mot bot</h2>
-    <p class="empty" style="text-align:left;padding:0 0 14px">Välj hur många bottar du vill möta. Matcher mot bottar räknas inte i statistiken eller topplistan.</p>${noticeHtml()}
-    ${gameSel==='trumf'?`<label>Insats (mynt)</label><div class="tabs" style="margin-bottom:14px">${[0,10,20,50,100].map(n=>`<button type="button" data-bstake="${n}" class="${botStake===n?'on':''}" ${n>(wallet??0)?'disabled':''}>${n===0?'Ingen':n}</button>`).join('')}</div>`:''}${gameSel==='poker'?`<label>Din insats (mynt du tar med)</label><div class="tabs" style="margin-bottom:14px">${[20,50,100,200,500].map(n=>`<button type="button" data-bbuy="${n}" class="${botBuyin===n?'on':''}" ${n>(wallet??0)?'disabled':''}>${n}</button>`).join('')}</div>`:''}
+    <p class="empty" style="text-align:left;padding:0 0 14px">Välj hur många bottar du vill möta. Det är gratis övning: ingen insats och inga mynt att vinna. Matcher mot bottar räknas inte i statistiken eller topplistan.</p>${noticeHtml()}
+    
     ${(gameSel!=='trumf'?[1,2,3,4,5]:[1,2,3]).map(n=>`<button class="opt" data-bots="${n}"><span>${'🤖'.repeat(n)}</span><div><b>${n} bot${n>1?'tar':''}</b><small>${n+1} spelare totalt</small></div></button>`).join('')}`;
   bindBack();
-  root.querySelectorAll('[data-bstake]').forEach(b=>b.onclick=()=>{botStake=+b.dataset.bstake;drawBot()});
-  root.querySelectorAll('[data-bbuy]').forEach(b=>b.onclick=()=>{botBuyin=+b.dataset.bbuy;drawBot()});
   root.querySelectorAll('[data-bots]').forEach(b=>b.onclick=async()=>{
     root.querySelectorAll('.opt').forEach(x=>x.disabled=true);
-    const args=gameSel==='trumf'?{p_bots:+b.dataset.bots,p_stake:botStake}:gameSel==='poker'?{p_bots:+b.dataset.bots,p_buyin:botBuyin}:{p_bots:+b.dataset.bots};
+    const args=gameSel==='trumf'?{p_bots:+b.dataset.bots,p_stake:0}:gameSel==='poker'?{p_bots:+b.dataset.bots,p_buyin:50}:{p_bots:+b.dataset.bots};
     const {error}=await db.rpc(({poker:'start_bot_poker2',uno:'start_bot_uno',bingo:'start_bot_bingo'})[gameSel]||'start_bot_trumf',args);
     if(error){await loadWallet();setNotice('err',errText(error));return drawBot()}
     await loadWallet();notice=null;playView='menu';await loadMyTable();drawPlay();
@@ -621,6 +620,8 @@ function backBtn(){return `<button class="btn ghost" id="back" style="margin-top
 function bindBack(){document.getElementById('back').onclick=()=>{playView='menu';notice=null;drawPlay()}}
 let newPublic=false,newMax=4,newStake=0,botStake=0,botBuyin=50;
 function drawCreate(){
+  if(gameSel==='bingo'&&![1,2,5,10].includes(newStake)) newStake=1;
+  if(gameSel==='trumf'&&![0,10,20,50,100].includes(newStake)) newStake=0;
   if(gameSel==='trumf'&&newMax>4) newMax=4;
   root.innerHTML=`${brand}${backBtn()}<h2 style="font-size:28px;margin-bottom:16px">Skapa bord · ${GN[gameSel]}</h2>${noticeHtml()}
     <form class="panel" id="cf">
@@ -629,7 +630,7 @@ function drawCreate(){
       <div class="tabs">${(gameSel!=='trumf'?[2,3,4,5,6]:[2,3,4]).map(n=>`<button type="button" data-n="${n}" class="${newMax===n?'on':''}">${n}</button>`).join('')}</div>
       <label>Typ</label>
       <div class="tabs"><button type="button" data-pub="0" class="${!newPublic?'on':''}">Privat</button><button type="button" data-pub="1" class="${newPublic?'on':''}">Offentligt</button></div>
-      ${gameSel==='trumf'?`<label>Insats per spelare (mynt)</label><div class="tabs">${[0,10,20,50,100].map(n=>`<button type="button" data-stake="${n}" class="${newStake===n?'on':''}">${n===0?'Ingen':n}</button>`).join('')}</div><p class="empty" style="text-align:left;padding:6px 0 0">${newStake?'Alla lägger '+newStake+' mynt i potten. 1:an får 80 %, 2:an 20 %.':'Spela för äran, utan mynt.'}</p>`:''}
+      ${gameSel==='bingo'?`<label>Pris per bricka (mynt)</label><div class="tabs">${[1,2,5,10].map(n=>`<button type="button" data-stake="${n}" class="${newStake===n?'on':''}">${n}</button>`).join('')}</div><p class="empty" style="text-align:left;padding:6px 0 0">Vinnaren får hela potten. Bingo genom stjärnan ⭐ i mitten dubblar vinsten.</p>`:''}${gameSel==='trumf'?`<label>Insats per spelare (mynt)</label><div class="tabs">${[0,10,20,50,100].map(n=>`<button type="button" data-stake="${n}" class="${newStake===n?'on':''}">${n===0?'Ingen':n}</button>`).join('')}</div><p class="empty" style="text-align:left;padding:6px 0 0">${newStake?'Alla lägger '+newStake+' mynt i potten. 1:an får 80 %, 2:an 20 %.':'Spela för äran, utan mynt.'}</p>`:''}
       <button class="btn" type="submit">Skapa bord</button></form>`;
   bindBack();
   const keep=()=>document.getElementById('tn').value;
@@ -641,7 +642,7 @@ function drawCreate(){
     const name=keep().trim(); if(!name){setNotice('err',ERR.bad_name);return drawCreate()}
     const {data:nt,error}=await db.rpc('create_game_table',{p_name:name,p_public:newPublic,p_max:newMax,p_game:gameSel});
     if(error){setNotice('err',errText(error));return drawCreate()}
-    if(gameSel==='trumf'&&newStake>0&&nt&&nt.id){await db.rpc('set_stake',{p_table:nt.id,p_stake:newStake})}
+    if((gameSel==='trumf'||gameSel==='bingo')&&newStake>0&&nt&&nt.id){await db.rpc('set_stake',{p_table:nt.id,p_stake:newStake})}
     notice=null;playView='menu';await loadMyTable();drawPlay();
   };
 }
@@ -1311,7 +1312,7 @@ function drawIdiot(){
       <div class="idprog"><div style="width:${g.pos/52*100}%"></div></div>
       <p class="idtxt" style="margin:6px 0 14px">Kort ${g.pos} av 52</p>
       ${g.status==='lost'?`<h2 class="idlost">Idioten! 🤦</h2><p class="idtxt">Du sa <b>${g.last_say}</b> och la ${g.last_say===1?'ett <b>ess</b>':'en <b>'+SAYW[g.last_say].toLowerCase()+'</b>'}.</p>`:
-        g.status==='won'?`<h2>🏆 Du klarade hela leken!</h2>`:
+        g.status==='won'?`<h2>🏆 Du klarade hela leken!</h2><p class="idtxt">Du får 🪙 20 i belöning.</p>`:
         `<p class="idtxt" style="margin:0">Du säger</p><div class="idsay" aria-live="polite">${nextSay}</div><p class="idtxt" style="margin-top:0">${nextSay===1?'(Ess)':''}</p>`}
       <div class="idpile">${lastCards?`<div class="idold">${lastCards}</div>`:''}${last?`<div class="idnew ${g.status==='lost'?'bad':''}">${cardHtml(last)}</div>`:'<div class="slot" style="width:60px;height:88px"></div>'}</div>
       ${over?`<button class="btn" id="idnew">Nytt spel</button>`:`<button class="btn" id="iddraw" ${idBusy?'disabled':''}>Lägg ett kort</button><p style="text-align:center;margin:14px 0 0"><button class="btn sm ghost" id="idquit">Börja om</button></p>`}
@@ -1324,7 +1325,7 @@ function drawIdiot(){
   bindTabs();
   document.getElementById('idr').onclick=()=>{idRules=!idRules;drawIdiot()};
   const nw=document.getElementById('idnew'); if(nw) nw.onclick=async()=>{nw.disabled=true;const {data}=await db.rpc('idiot_start');idg=data||null;await loadIdiot();drawIdiot()};
-  const dr=document.getElementById('iddraw'); if(dr) dr.onclick=async()=>{if(idBusy)return;idBusy=true;dr.disabled=true;const {data,error}=await db.rpc('idiot_draw',{p_game:g.id});idBusy=false;if(error){await loadIdiot()}else{idg=data;if(data.status!=='playing')await loadIdiot()}drawIdiot()};
+  const dr=document.getElementById('iddraw'); if(dr) dr.onclick=async()=>{if(idBusy)return;idBusy=true;dr.disabled=true;const {data,error}=await db.rpc('idiot_draw',{p_game:g.id});idBusy=false;if(error){await loadIdiot()}else{idg=data;if(data.status==='won')loadWallet();if(data.status!=='playing')await loadIdiot()}drawIdiot()};
   const q=document.getElementById('idquit'); if(q) q.onclick=async()=>{if(q.dataset.a!=='1'){q.dataset.a='1';q.textContent='Säker? Tryck igen';return}const {data}=await db.rpc('idiot_start');idg=data||null;await loadIdiot();drawIdiot()};
 }
 
@@ -1473,15 +1474,15 @@ function drawBingo(){
   const g=bg, me=bgMe();
   if(!me){root.innerHTML=`${brand}<p class="empty">Du är inte med i den här matchen.</p>`;return}
   if(g.status==='finished') return drawBingoFinal();
-  const top=`<div class="bgtop"><span class="bgpill">🪙 ${bgWallet??'–'}</span><span class="bgpill gold">Pott 🪙 ${g.pot}</span></div>`;
+  const top=g.has_bots?`<div class="bgtop"><span class="bgpill">Gratis övning</span></div>`:`<div class="bgtop"><span class="bgpill">🪙 ${bgWallet??'–'}</span><span class="bgpill gold">Pott 🪙 ${g.pot}</span></div>`;
   let mid='';
   if(g.status==='buying'){
     const doneN=bgp.filter(p=>p.bought).length;
     mid=me.bought?`<div class="panel idp"><h2>Väntar på andra…</h2><p class="idtxt">${doneN} av ${bgp.length} klara. Start om <b id="bgcd"></b></p></div>`:
-      `<div class="panel idp"><h2>Köp brickor</h2><p class="idtxt">En bricka kostar 🪙 ${g.price}. Du har 🪙 ${bgWallet}.</p>
+      `<div class="panel idp"><h2>Välj brickor</h2><p class="idtxt">${g.has_bots?'Gratis övning – inga mynt.':`En bricka kostar 🪙 ${g.price}. Du har 🪙 ${bgWallet}.`}</p>
       <div class="stepper"><button id="bm" aria-label="Färre">−</button><b id="bn">${bgBuyN}</b><button id="bp" aria-label="Fler">+</button></div>
-      <p class="idtxt" style="margin:0 0 14px">${bgBuyN} ${bgBuyN>1?'brickor':'bricka'} = 🪙 ${bgBuyN*g.price} · Start om <b id="bgcd"></b></p>
-      <button class="btn" id="bbuy" ${bgWallet<bgBuyN*g.price?'disabled':''}>Köp ${bgBuyN} ${bgBuyN>1?'brickor':'bricka'}</button>
+      <p class="idtxt" style="margin:0 0 14px">${bgBuyN} ${bgBuyN>1?'brickor':'bricka'}${g.has_bots?'':' = 🪙 '+bgBuyN*g.price} · Start om <b id="bgcd"></b></p>
+      <button class="btn" id="bbuy" ${(!g.has_bots&&bgWallet<bgBuyN*g.price)?'disabled':''}>${g.has_bots?'Ta':'Köp'} ${bgBuyN} ${bgBuyN>1?'brickor':'bricka'}</button>
       <button class="btn ghost" id="bskip">Titta bara</button></div>`;
   } else {
     const last=g.last_ball, prev=g.drawn.slice(0,-1).slice(-6).reverse();
@@ -1515,7 +1516,7 @@ function drawBingoFinal(){
   const g=bg, w=g.winner_id?bgp.find(p=>p.user_id===g.winner_id):null, mine=g.winner_id===session.user.id;
   const known=new Set([...friends,...incoming,...outgoing].map(x=>x.id));
   root.innerHTML=`${brand}<div class="panel me"><div style="font-size:54px">${w?(mine?'🎉':'🏆'):'🏁'}</div><h2>${w?(mine?'BINGO! Du vann!':esc(((w.profiles||{}).username||'').toUpperCase())+' fick BINGO!'):'Matchen avslutades'}</h2>
-    ${w?`<p class="idtxt">Potten på 🪙 ${g.prize} gick till ${mine?'dig':esc((w.profiles||{}).username||'')}.</p>`:''}
+    ${w&&!g.has_bots?`<p class="idtxt">${g.prize>g.pot?'⭐ Stjärnbingo – dubbel vinst! ':''}🪙 ${g.prize} gick till ${mine?'dig':esc((w.profiles||{}).username||'')}.</p>`:''}${g.has_bots?'<p class="idtxt">Gratis övning – inga mynt vanns.</p>':''}
     <p class="idtxt">Du har nu 🪙 ${bgWallet??'–'}.</p>
     <div class="sect">${bgp.map(p=>`<div class="row"><div class="av">${esc((p.profiles||{}).avatar||'🎴')}</div><div class="nm">${esc((p.profiles||{}).username||'')}<small>${p.cards} ${p.cards===1?'bricka':'brickor'}</small></div>
     ${p.user_id!==session.user.id&&!known.has(p.user_id)&&!(p.profiles||{}).is_bot?`<button class="btn sm" data-addf="${p.user_id}">+ Lägg till vän</button>`:''}</div>`).join('')}</div>
