@@ -365,6 +365,26 @@
   .bcards.many{gap:6px}.bcards.many .bcard{padding:5px;border-radius:12px}.bcards.many .bgrid{gap:2px}
   .bcards.many .bc{font-size:12px;border-radius:6px}.bcards.many .bhead{font-size:12px;margin-bottom:2px}
   .bcards.many .bbingo{margin-top:4px;padding:7px;font-size:13px}
+  .crz.bcards .bcard{background:linear-gradient(145deg,#fff6d6,#ffdff0 55%,#dcefff);border:3px dashed #ff8fbf;box-shadow:0 8px 20px rgba(255,120,180,.28)}
+  .crz.bcards .bcard:nth-child(odd){transform:rotate(-1.2deg)}.crz.bcards .bcard:nth-child(even){transform:rotate(1.2deg)}
+  .crz.bcards .bcard.line{outline:3px solid #ffb020;border-color:#ffb020}
+  .crz.bcards .bhead span{background:var(--c);width:78%;aspect-ratio:1;margin:0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-family:inherit;font-weight:900;text-shadow:0 1px 3px rgba(0,0,0,.3)}
+  .crz.bcards .bhead span:nth-child(1),.crz.bcards .bc:nth-child(5n+1){--c:#2F6FB5;}
+  .crz.bcards .bhead span:nth-child(2),.crz.bcards .bc:nth-child(5n+2){--c:#E8456B;}
+  .crz.bcards .bhead span:nth-child(3),.crz.bcards .bc:nth-child(5n+3){--c:#8E5BD9;}
+  .crz.bcards .bhead span:nth-child(4),.crz.bcards .bc:nth-child(5n+4){--c:#2FB27A;}
+  .crz.bcards .bhead span:nth-child(5),.crz.bcards .bc:nth-child(5n+5){--c:#F28C1E;}
+  .crz.bcards .bc{background:color-mix(in srgb,var(--c) 20%,#fff);color:#1d1d2b;border:2px solid var(--c);border-radius:50%;font-weight:800}
+  .crz.bcards .bc:nth-child(3n){border-radius:32%}
+  .crz.bcards .bc.on{background:var(--c);color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.35);box-shadow:inset -3px -4px 8px rgba(0,0,0,.2),0 3px 8px rgba(0,0,0,.2);animation:crzpop .35s ease-out}
+  .crz.bcards .bc.hot{box-shadow:0 0 0 3px #ffd23f,0 0 12px #ffd23f}
+  .crz.bcards .bc.free{background:radial-gradient(circle,#fff4a8,#ffb020);border-color:#ff8a00;font-size:20px;animation:crzspin 6s linear infinite}
+  @keyframes crzpop{0%{transform:scale(.5) rotate(-20deg)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
+  @keyframes crzspin{to{transform:rotate(360deg)}}
+  .crz.bgtop .bgpill{background:linear-gradient(135deg,#fff,#ffe3f1);border:2px solid #ff8fbf}.crz.bgtop .bgpill.gold{background:linear-gradient(135deg,#ffd23f,#ff9f1c);border-color:#ff8a00}
+  .crz.bgrow .bgball{box-shadow:inset -5px -6px 12px rgba(0,0,0,.25),0 0 0 4px #fff,0 0 0 7px #ffb020,0 6px 14px var(--shadow)}
+  .crz.bgrow .pb{border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  @media (prefers-reduced-motion:reduce){.crz.bcards .bc.free{animation:none}}
 </style>
 </head>
 <body>
@@ -1624,7 +1644,7 @@ function drawBingo(){
   const g=bg, me=bgMe();
   if(!me){root.innerHTML=`${brand}<p class="empty">Du är inte med i den här matchen.</p>`;return}
   if(g.status==='finished') return drawBingoFinal();
-  const top=g.mode==='crazy'?`<div class="bgtop c"><span class="bgpill">${g.practice?'Gratis övning':'🪙 '+(bgWallet??'–')}${(me.won||0)>0?` <small style="color:var(--forest);font-weight:800">+${me.won}</small>`:''}</span><span class="bgpill gold" id="bgleft">${g.status==='buying'?'Pris 🪙 '+g.price:'⏱ 5:30'}</span></div>`:g.practice?`<div class="bgtop c"><span class="bgpill">Gratis övning</span></div>`:`<div class="bgtop c"><span class="bgpill">🪙 ${bgWallet??'–'}</span><span class="bgpill gold">Pott 🪙 ${g.pot}</span></div>`;
+  const top=g.mode==='crazy'?`<div class="bgtop c crz"><span class="bgpill">${g.practice?'Gratis övning':'🪙 '+(bgWallet??'–')}${(me.won||0)>0?` <small style="color:var(--forest);font-weight:800">+${me.won}</small>`:''}</span><span class="bgpill gold" id="bgleft">${g.status==='buying'?'Pris 🪙 '+g.price:'⏱ 5:30'}</span></div>`:g.practice?`<div class="bgtop c"><span class="bgpill">Gratis övning</span></div>`:`<div class="bgtop c"><span class="bgpill">🪙 ${bgWallet??'–'}</span><span class="bgpill gold">Pott 🪙 ${g.pot}</span></div>`;
   let mid='';
   if(g.status==='buying'){
     const doneN=bgp.filter(p=>p.bought).length;
@@ -1636,13 +1656,13 @@ function drawBingo(){
       <button class="btn ghost" id="bskip">Titta bara</button></div>`;
   } else {
     const last=g.last_ball, prev=g.drawn.slice(0,-1).slice(-6).reverse();
-    mid=`<div class="bgrow"><div class="bgball ${last?'b'+bgLetter(last):''} ${(last&&bgAnimBall!==g.id+'-'+last)?'anim':''}" key="${last}">${last?`<small>${bgLetter(last)}</small><b>${last}</b>`:'<b>…</b>'}</div>
+    mid=`<div class="bgrow ${g.mode==='crazy'?'crz':''}"><div class="bgball ${last?'b'+bgLetter(last):''} ${(last&&bgAnimBall!==g.id+'-'+last)?'anim':''}" key="${last}">${last?`<small>${bgLetter(last)}</small><b>${last}</b>`:'<b>…</b>'}</div>
       <div class="bgside"><div class="bgprev">${prev.map(n=>`<span class="pb b${bgLetter(n)}">${bgLetter(n)}${n}</span>`).join('')}</div>
       <p class="idtxt">${g.drawn.length} av ${g.mode==='crazy'?55:75} ${g.mode==='crazy'?'kulor':'tal'}</p></div></div>
       <div class="timer" style="margin:0 0 8px"><div id="bgbar" style="height:100%;background:var(--gold)"></div></div>`;
   }
   const solo=bgCards.length===1;
-  const cards=bgCards.length?`<div class="bcards ${solo?'one':(bgCards.length>2?'many':'')}">${bgCards.map(c=>bgCardHtml(c,solo)).join('')}</div>`:(g.status==='drawing'?'<p class="empty">Du tittar på den här omgången.</p>':'');
+  const cards=bgCards.length?`<div class="bcards ${solo?'one':(bgCards.length>2?'many':'')} ${g.mode==='crazy'?'crz':''}">${bgCards.map(c=>bgCardHtml(c,solo)).join('')}</div>`:(g.status==='drawing'?'<p class="empty">Du tittar på den här omgången.</p>':'');
   const oth=bgp.filter(p=>p.user_id!==me.user_id).map(p=>{const pr=p.profiles||{},b=bgProg[p.user_id]||0;return `<div class="bgo2"><span>${esc(pr.avatar||'')} <b>${esc(pr.username||'')}</b> · ${p.cards} ${p.cards===1?'bricka':'brickor'}${g.mode==='crazy'&&p.won>0?' · '+(g.practice?p.won+' p':'🪙 '+p.won):''}</span>${g.mode!=='crazy'&&g.status==='drawing'&&p.cards?`<span class="dots" aria-label="${b} av 5 i rad">${[1,2,3,4,5].map(i=>`<i class="${i<=b?'on':''}"></i>`).join('')}</span>`:''}</div>`}).join('');
   root.innerHTML=`${g.status==='drawing'?'':brand}${top}${g.mode==='crazy'?wheelBtn(true):''}${mid}${g.status==='drawing'?`<div class="bgopts c"><label class="chk"><input type="checkbox" id="bauto" ${bgAuto?'checked':''}> Markera automatiskt</label><button class="btn sm ghost" id="bcall">${bgCalled?'Dölj':'Visa'} utropade tal</button></div>`:''}
     ${bgCalled&&g.status==='drawing'?`<div class="bcalled">${BL.map((l,ci)=>`<div><b>${l}</b>${Array.from({length:15},(_,k)=>ci*15+k+1).map(n=>`<span class="${g.drawn.includes(n)?'d':''}">${n}</span>`).join('')}</div>`).join('')}</div>`:''}
