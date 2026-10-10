@@ -253,6 +253,12 @@
   .idnew.bad .pc{box-shadow:0 0 0 4px var(--red)}
   @keyframes idin{from{transform:translateY(-24px) scale(.9);opacity:0}to{transform:none;opacity:1}}
   @media (prefers-reduced-motion:reduce){.idnew{animation:none}}
+  .inst{padding:16px 18px;margin-bottom:14px}
+  .insttop{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .instic{font-size:30px}.instt{flex:1}.instt b{display:block;font-size:15px}.instt small{color:var(--ink-soft);font-size:13px}
+  .instx{border:none;background:var(--cream-dim);width:34px;height:34px;border-radius:50%;cursor:pointer;color:var(--ink);font-size:14px}
+  .inststeps{margin:0 0 12px;padding-left:20px;line-height:1.6;font-size:14px}
+  .inst .btn{padding:13px}
   .slot{width:44px;height:64px;border:1.5px dashed #b9ad8c;border-radius:8px}
   .mini{display:flex;gap:2px;min-height:34px}
   .pc.xs{width:24px;height:34px;font-size:11px;padding:2px;border-radius:5px}
@@ -403,7 +409,7 @@ function draw(){
 /* ---------- HOME ---------- */
 function drawHome(){
   const onl=friends.filter(f=>onlineIds.has(f.id));
-  root.innerHTML=`${brand}
+  root.innerHTML=`${brand}${installBanner()}
     <div class="greet"><div class="av">${esc(me.avatar)}</div><div><small>Välkommen tillbaka</small><h2>${esc(me.username)}</h2></div></div>
     <div class="trumf"><h2>Spela Trumf</h2><p>${curTable?`Du sitter vid <b>${esc(curTable.name)}</b> (${tablePlayers.length}/${curTable.max_players}).`:'Skapa bord, bjud in vänner och spela 17 omgångar.'}</p>${!curTable&&friends.length===0?'<p style="margin:0 0 14px;font-size:13px;opacity:.85">Inga vänner ännu? Du kan spela mot bot.</p>':''}<button class="btn" id="goplay" style="background:var(--cream);color:var(--forest);box-shadow:none;width:auto;padding:12px 22px">${curTable?'Till lobbyn':'Spela nu'}</button></div>
     <div class="games">
@@ -424,6 +430,7 @@ function drawHome(){
       <div class="stat"><b>${rk?'#'+rk:'–'}</b><span>Ranking</span></div></div>`})():'<p class="empty">Laddar…</p>'}`;
   bindFriendActs();
   document.getElementById('goplay').onclick=()=>{gameSel='trumf';go('play')};
+  bindInstall();
   document.getElementById('goidiot').onclick=()=>{gameSel='idiot';playView='menu';go('play')};
   document.getElementById('gouno').onclick=()=>{gameSel='uno';go('play')};
   document.getElementById('gopoker').onclick=()=>{gameSel='poker';go('play')};
@@ -1230,6 +1237,30 @@ function drawIdiot(){
   const nw=document.getElementById('idnew'); if(nw) nw.onclick=async()=>{nw.disabled=true;const {data}=await db.rpc('idiot_start');idg=data||null;await loadIdiot();drawIdiot()};
   const dr=document.getElementById('iddraw'); if(dr) dr.onclick=async()=>{if(idBusy)return;idBusy=true;dr.disabled=true;const {data,error}=await db.rpc('idiot_draw',{p_game:g.id});idBusy=false;if(error){await loadIdiot()}else{idg=data;if(data.status!=='playing')await loadIdiot()}drawIdiot()};
   const q=document.getElementById('idquit'); if(q) q.onclick=async()=>{if(q.dataset.a!=='1'){q.dataset.a='1';q.textContent='Säker? Tryck igen';return}const {data}=await db.rpc('idiot_start');idg=data||null;await loadIdiot();drawIdiot()};
+}
+
+/* ---------- INSTALLERA SOM APP ---------- */
+let deferredInstall=null, instSteps=false;
+const isStandalone=()=>(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const instDismissed=()=>{try{return localStorage.getItem('instNo')==='1'}catch(e){return false}};
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;if(session&&page==='home')draw()});
+window.addEventListener('appinstalled',()=>{deferredInstall=null;try{localStorage.setItem('instNo','1')}catch(e){}if(session&&page==='home')draw()});
+function installBanner(){
+  if(isStandalone()||instDismissed()) return '';
+  const ios=isIOS();
+  if(!deferredInstall&&!ios) return '';
+  return `<div class="panel inst"><div class="insttop"><div class="instic">📲</div><div class="instt"><b>Lägg Spelhubben på skrivbordet</b><small>${ios?'Så startar du den som en app.':'Starta den som en app, utan webbläsaren.'}</small></div><button class="instx" id="instno" aria-label="Inte nu">✕</button></div>
+  ${ios&&instSteps?`<ol class="inststeps"><li>Tryck på dela-knappen (rutan med pilen) längst ner i Safari.</li><li>Välj <b>Lägg till på hemskärmen</b>.</li><li>Tryck <b>Lägg till</b>.</li></ol>`:''}
+  <button class="btn" id="instgo">${ios?(instSteps?'Jag har lagt till den':'Visa hur'):'Lägg till'}</button></div>`;
+}
+function bindInstall(){
+  const no=document.getElementById('instno'); if(no) no.onclick=()=>{try{localStorage.setItem('instNo','1')}catch(e){}draw()};
+  const go=document.getElementById('instgo'); if(!go) return;
+  go.onclick=async()=>{
+    if(deferredInstall){deferredInstall.prompt();try{await deferredInstall.userChoice}catch(e){}deferredInstall=null;try{localStorage.setItem('instNo','1')}catch(e){}draw()}
+    else if(isIOS()){ if(instSteps){try{localStorage.setItem('instNo','1')}catch(e){}} instSteps=!instSteps; draw() }
+  };
 }
 
 db.auth.onAuthStateChange((ev,s)=>{
