@@ -266,6 +266,41 @@
   #fbov .btn{margin-top:8px}
   .fbi small{color:var(--ink-soft)}.fbi p{margin:6px 0 12px;white-space:pre-wrap;word-break:break-word}.fbi.done{opacity:.55}
   .fbi{padding:16px 18px;margin-bottom:12px}
+  .bgtop{display:flex;justify-content:space-between;margin:4px 0 14px}
+  .bgpill{background:var(--surface);border-radius:999px;padding:8px 16px;font-weight:700;box-shadow:0 4px 12px var(--shadow)}
+  .bgpill.gold{background:var(--gold);color:#2b2200}
+  .bgball{width:120px;height:120px;border-radius:50%;margin:0 auto 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;box-shadow:inset -8px -10px 18px rgba(0,0,0,.25),0 10px 24px var(--shadow);animation:ballin .5s ease-out}
+  .bgball small{font-size:22px;font-weight:800;line-height:1;margin-bottom:2px}.bgball b{font-size:48px;line-height:1;font-family:'Fraunces',serif}
+  @keyframes ballin{from{transform:translateY(-40px) scale(.6);opacity:0}to{transform:none;opacity:1}}
+  .bB{background:#2F6FB5}.bI{background:#D9453D}.bN{background:#6B7280}.bG{background:#3E9D5B}.bO{background:#E08A1E}
+  .bgprev{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+  .pb{color:#fff;font-weight:700;font-size:12px;padding:5px 9px;border-radius:999px}
+  .bgopts{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:6px 0 12px}
+  .chk{font-size:14px;display:flex;align-items:center;gap:8px}.chk input{width:20px;height:20px}
+  .bgopts .btn{width:auto;margin:0}
+  .bcalled{background:var(--surface);border-radius:16px;padding:10px;margin-bottom:12px;font-size:11px}
+  .bcalled div{display:flex;gap:2px;flex-wrap:wrap;align-items:center;margin-bottom:3px}.bcalled b{width:14px}
+  .bcalled span{width:20px;text-align:center;color:var(--ink-soft);opacity:.45}.bcalled span.d{opacity:1;background:var(--forest);color:var(--on-forest);border-radius:6px;font-weight:700}
+  .bcards{display:grid;grid-template-columns:1fr 1fr;gap:10px}.bcards.one{grid-template-columns:1fr;max-width:320px;margin:0 auto}
+  .bcard{background:var(--surface);border-radius:16px;padding:8px;box-shadow:0 6px 16px var(--shadow)}
+  .bcard.line{outline:3px solid var(--gold)}
+  .bhead{display:grid;grid-template-columns:repeat(5,1fr);text-align:center;font-weight:800;color:var(--forest);font-family:'Fraunces',serif;margin-bottom:4px}
+  .bgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:3px}
+  .bc{aspect-ratio:1;border:none;border-radius:8px;background:var(--cream-dim);color:var(--ink);font-weight:700;font-size:14px;font-family:inherit;padding:0;display:flex;align-items:center;justify-content:center}
+  .bcard.solo .bc{font-size:18px}
+  .bc.free{background:var(--gold);color:#2b2200}
+  .bc.on{background:var(--forest);color:var(--on-forest)}
+  .bc.hot{background:#F4D58D;color:#2b2200;box-shadow:0 0 0 2px var(--gold);cursor:pointer}
+  .bc:disabled{opacity:1}
+  .bbingo{margin-top:8px;padding:12px;animation:pulse 1s infinite}
+  @keyframes pulse{50%{transform:scale(1.04)}}
+  .bgothers{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:14px;font-size:12px}
+  .bgo{background:var(--cream-dim);padding:5px 10px;border-radius:999px}
+  .stepper{display:flex;align-items:center;justify-content:center;gap:22px;margin:14px 0}
+  .stepper button{width:52px;height:52px;border-radius:50%;border:none;background:var(--cream-dim);font-size:26px;cursor:pointer;color:var(--ink)}
+  .stepper b{font-size:44px;font-family:'Fraunces',serif;min-width:44px}
+  @media (prefers-reduced-motion:reduce){.bgball,.bbingo{animation:none}}
+  #gs button{padding:11px 2px;font-size:13px}
   .slot{width:44px;height:64px;border:1.5px dashed #b9ad8c;border-radius:8px}
   .mini{display:flex;gap:2px;min-height:34px}
   .pc.xs{width:24px;height:34px;font-size:11px;padding:2px;border-radius:5px}
@@ -423,8 +458,9 @@ function drawHome(){
     <div class="games">
       <button class="game" id="gopoker" style="border:none;cursor:pointer;font-family:inherit;color:var(--ink)">♠️ Texas Hold'em<span>Spela nu</span></button>
       <button class="game" id="goidiot" style="border:none;cursor:pointer;font-family:inherit;color:var(--ink)">🃏 Idioten<span>Patiens</span></button>
+      <button class="game" id="gobingo" style="border:none;cursor:pointer;font-family:inherit;color:var(--ink)">🎱 Bingo<span>Spela nu</span></button>
       <button class="game" id="gouno" style="border:none;cursor:pointer;font-family:inherit;color:var(--ink)">🟥 UNO<span>Spela nu</span></button>
-      <div class="game">Skip-Bo<span>Kommer senare</span></div>
+      <div class="game" style="grid-column:1/-1">Skip-Bo<span>Kommer senare</span></div>
       <a class="game" id="gotown" href="https://techtown-spel.pages.dev" target="_blank" rel="noopener" style="grid-column:1/-1;text-decoration:none;color:var(--ink)">🏙️ Techtown<span>Bygg din egen stad</span></a>
     
     </div>
@@ -442,11 +478,12 @@ function drawHome(){
   bindInstall();
   const tt=document.getElementById('gotown'); if(tt) tt.addEventListener('click',()=>{db.rpc('track_click',{p_target:'techtown'})});
   document.getElementById('goidiot').onclick=()=>{gameSel='idiot';playView='menu';go('play')};
+  document.getElementById('gobingo').onclick=()=>{gameSel='bingo';go('play')};
   document.getElementById('gouno').onclick=()=>{gameSel='uno';go('play')};
   document.getElementById('gopoker').onclick=()=>{gameSel='poker';go('play')};
 }
 /* ---------- BORD & LOBBY ---------- */
-const GN={trumf:'Trumf',poker:"Texas Hold'em",uno:'UNO',idiot:'Idioten'};
+const GN={trumf:'Trumf',poker:"Texas Hold'em",uno:'UNO',bingo:'Bingo',idiot:'Idioten'};
 let gameSel='trumf', curTable=null, tablePlayers=[], tableChan=null, publicTables=[], playView='menu', listTimer=null;
 const ERR={already_at_table:'Du sitter redan vid ett bord. Lämna det först.',not_found:'Hittade inget bord med den koden.',table_full:'Bordet är fullt.',already_started:'Spelet har redan startat.',bad_name:'Skriv ett namn på bordet (1–30 tecken).',not_logged_in:'Du måste logga in.'};
 const errText=e=>ERR[(e&&e.message)||'']||'Något gick fel. Försök igen.';
@@ -457,9 +494,9 @@ function dismissTable(id){try{localStorage.setItem('dismissedTable',id)}catch(e)
 async function loadMyTable(){
   const {data}=await db.from('table_players').select('table_id,tables!inner(id,code,name,game,is_public,max_players,owner_id,status,created_at)').eq('user_id',session.user.id).in('tables.status',['lobby','playing','finished']).order('joined_at',{ascending:false}).limit(1);
   const t=data&&data[0]&&data[0].tables;
-  if(!t||(t.status==='finished'&&dismissedId()===t.id)){ stopTableChan(); stopGameChan(); curTable=null; tablePlayers=[]; game=null; pk=null; un=null; return }
+  if(!t||(t.status==='finished'&&dismissedId()===t.id)){ stopTableChan(); stopGameChan(); curTable=null; tablePlayers=[]; game=null; pk=null; un=null; bg=null; return }
   curTable=t; await loadPlayers(); watchTable();
-  if(t.status!=='lobby'){ if(t.game==='poker'){ await loadPoker(); watchPoker() } else if(t.game==='uno'){ await loadUno(); watchUno() } else { await loadGame(); watchGame() } } else { stopGameChan(); game=null; pk=null; un=null }
+  if(t.status!=='lobby'){ if(t.game==='poker'){ await loadPoker(); watchPoker() } else if(t.game==='uno'){ await loadUno(); watchUno() } else if(t.game==='bingo'){ await loadBingo(); watchBingo() } else { await loadGame(); watchGame() } } else { stopGameChan(); game=null; pk=null; un=null; bg=null }
 }
 async function loadPlayers(){
   const {data}=await db.from('table_players').select('user_id,ready,joined_at,profiles(id,username,avatar)').eq('table_id',curTable.id).order('joined_at');
@@ -527,11 +564,11 @@ function drawLobby(){
   document.getElementById('ready').onclick=async()=>{await db.rpc('set_ready',{p_table:t.id,p_ready:!mine.ready});await loadPlayers();drawLobby()};
   document.getElementById('leave').onclick=doLeave;
   const st=document.getElementById('start');
-  if(st&&allReady) st.onclick=async()=>{st.disabled=true;const {error}=await db.rpc(({poker:'start_poker',uno:'start_uno'})[t.game]||'start_game',{p_table:t.id});if(error){setNotice('err','Kunde inte starta: '+(error.message||''));drawLobby();return}await loadMyTable();drawPlay()};
+  if(st&&allReady) st.onclick=async()=>{st.disabled=true;const {error}=await db.rpc(({poker:'start_poker',uno:'start_uno',bingo:'start_bingo'})[t.game]||'start_game',{p_table:t.id});if(error){setNotice('err','Kunde inte starta: '+(error.message||''));drawLobby();return}await loadMyTable();drawPlay()};
 }
 function drawPlay(){
   if(listTimer){clearInterval(listTimer);listTimer=null}
-  if(curTable&&curTable.status!=='lobby') return curTable.game==='poker'?drawPoker():curTable.game==='uno'?drawUno():drawGame();
+  if(curTable&&curTable.status!=='lobby') return curTable.game==='poker'?drawPoker():curTable.game==='uno'?drawUno():curTable.game==='bingo'?drawBingo():drawGame();
   if(curTable) return drawLobby();
   if(playView==='create') return drawCreate();
   if(playView==='join') return drawJoinCode();
@@ -553,7 +590,7 @@ function drawBot(){
   bindBack();
   root.querySelectorAll('[data-bots]').forEach(b=>b.onclick=async()=>{
     root.querySelectorAll('.opt').forEach(x=>x.disabled=true);
-    const {error}=await db.rpc(({poker:'start_bot_poker',uno:'start_bot_uno'})[gameSel]||'start_bot_game',{p_bots:+b.dataset.bots});
+    const {error}=await db.rpc(({poker:'start_bot_poker',uno:'start_bot_uno',bingo:'start_bot_bingo'})[gameSel]||'start_bot_game',{p_bots:+b.dataset.bots});
     if(error){setNotice('err',errText(error));return drawBot()}
     notice=null;playView='menu';await loadMyTable();drawPlay();
   });
@@ -738,7 +775,7 @@ const SYM={S:'♠',H:'♥',D:'♦',C:'♣'}, SUITORD={S:0,H:1,C:2,D:3}, RANKS=['
 const cv=c=>RANKS.indexOf(c.slice(1));
 const sortHand=h=>[...h].sort((a,b)=>SUITORD[a[0]]-SUITORD[b[0]]||cv(a)-cv(b));
 function cardHtml(c,extra=''){return `<div class="pc ${c[0]==='H'||c[0]==='D'?'r':''} ${extra}"><b>${c.slice(1)}</b><span>${SYM[c[0]]}</span></div>`}
-function stopGameChan(){ if(gameChan){db.removeChannel(gameChan);gameChan=null} if(gameTick){clearInterval(gameTick);gameTick=null} if(pkChan){db.removeChannel(pkChan);pkChan=null} if(pkTick){clearInterval(pkTick);pkTick=null} if(unChan){db.removeChannel(unChan);unChan=null} if(unTick){clearInterval(unTick);unTick=null} }
+function stopGameChan(){ if(gameChan){db.removeChannel(gameChan);gameChan=null} if(gameTick){clearInterval(gameTick);gameTick=null} if(pkChan){db.removeChannel(pkChan);pkChan=null} if(pkTick){clearInterval(pkTick);pkTick=null} if(unChan){db.removeChannel(unChan);unChan=null} if(unTick){clearInterval(unTick);unTick=null} if(bgChan){db.removeChannel(bgChan);bgChan=null} if(bgTick){clearInterval(bgTick);bgTick=null} }
 async function loadGame(){
   const {data:g}=await db.from('games').select('*').eq('table_id',curTable.id).maybeSingle();
   if(!g){game=null;return}
@@ -1207,7 +1244,7 @@ setInterval(()=>{
 /* ---------- IDIOTEN (patiens) ---------- */
 let idg=null, idStats=null, idLoaded=false, idBusy=false, idRules=false;
 const SAYW={1:'Ess',2:'Tvåa',3:'Trea',4:'Fyra'};
-function gameTabs(){return `<div class="tabs" id="gs">${[['trumf','Trumf'],['poker',"Hold'em"],['uno','UNO'],['idiot','Idioten']].map(([k,n])=>`<button data-g="${k}" class="${gameSel===k?'on':''}">${n}</button>`).join('')}</div>`}
+function gameTabs(){return `<div class="tabs" id="gs">${[['trumf','Trumf'],['poker',"Hold'em"],['uno','UNO'],['bingo','Bingo'],['idiot','Idioten']].map(([k,n])=>`<button data-g="${k}" class="${gameSel===k?'on':''}">${n}</button>`).join('')}</div>`}
 function bindTabs(){root.querySelectorAll('#gs [data-g]').forEach(b=>b.onclick=()=>{gameSel=b.dataset.g;drawPlay()})}
 async function loadIdiot(){
   const [a,b]=await Promise.all([
@@ -1327,9 +1364,124 @@ function drawAdmin(){
   root.querySelectorAll('[data-fb]').forEach(b=>b.onclick=async()=>{b.disabled=true;await db.rpc('admin_feedback_done',{p_id:+b.dataset.fb,p_done:b.dataset.d==='1'});await loadAdmin();drawAdmin()});
 }
 
+/* ---------- BINGO ---------- */
+let bg=null, bgp=[], bgCards=[], bgWallet=null, bgChan=null, bgTick=null, bgLoadT=null, bgBuyN=1, bgMarks={}, bgAuto=true, bgCalled=false, bgTickKey='', bgClaimed={};
+const BL=['B','I','N','G','O'];
+const bgLetter=n=>BL[Math.min(4,Math.floor((n-1)/15))];
+const bgMe=()=>bgp.find(p=>p.user_id===session.user.id);
+function bgSet(card){return bgMarks[card.id]||(bgMarks[card.id]=new Set())}
+function bgLine(nums,set){
+  const m=i=>nums[i]===0||set.has(nums[i]);
+  for(let r=0;r<5;r++){if([0,1,2,3,4].every(c=>m(r*5+c)))return true}
+  for(let c=0;c<5;c++){if([0,1,2,3,4].every(r=>m(r*5+c)))return true}
+  return [0,1,2,3,4].every(i=>m(i*5+i))||[0,1,2,3,4].every(i=>m(i*5+4-i));
+}
+async function loadBingo(){
+  const {data:g}=await db.from('bingo_games').select('*').eq('table_id',curTable.id).maybeSingle();
+  if(!g){bg=null;return}
+  const [pl,cd,w]=await Promise.all([
+    db.from('bingo_players').select('user_id,cards,bought,profiles(username,avatar,is_bot)').eq('game_id',g.id),
+    db.from('bingo_cards').select('id,nums').eq('game_id',g.id).eq('user_id',session.user.id).order('id'),
+    db.from('bingo_wallets').select('balance').eq('user_id',session.user.id).maybeSingle()]);
+  bg=g; bgp=pl.data||[]; bgCards=cd.data||[];
+  if(w.data) bgWallet=w.data.balance; else { const r=await db.rpc('bingo_wallet'); bgWallet=r.data }
+}
+function watchBingo(){
+  if(!bg||(bgChan&&bgChan._gid===bg.id)) return;
+  stopGameChan();
+  const id=bg.id, f='game_id=eq.'+id;
+  const on=()=>{clearTimeout(bgLoadT);bgLoadT=setTimeout(async()=>{await loadBingo();if(curTable&&curTable.status==='playing'&&bg&&bg.status==='finished'){await loadMyTable()}if(page==='play')drawPlay()},60)};
+  bgChan=db.channel('bingo-'+id)
+    .on('postgres_changes',{event:'*',schema:'public',table:'bingo_games',filter:'id=eq.'+id},on)
+    .on('postgres_changes',{event:'*',schema:'public',table:'bingo_players',filter:f},on)
+    .on('postgres_changes',{event:'*',schema:'public',table:'bingo_cards',filter:f},on)
+    .subscribe();
+  bgChan._gid=id;
+  bgTick=setInterval(tickBingo,300);
+}
+function tickBingo(){
+  if(!bg||page!=='play') return;
+  const now=Date.now();
+  if(bg.status==='buying'&&bg.buy_deadline){
+    const left=Math.max(0,Math.ceil((new Date(bg.buy_deadline)-now)/1000));
+    const el=document.getElementById('bgcd'); if(el) el.textContent=left+' s';
+    if(left<=0&&bgTickKey!=='b'+bg.buy_deadline){bgTickKey='b'+bg.buy_deadline;setTimeout(()=>db.rpc('bingo_tick',{p_game:bg.id}),Math.random()*400)}
+  } else if(bg.status==='drawing'&&bg.next_draw_at){
+    const ms=new Date(bg.next_draw_at)-now;
+    const bar=document.getElementById('bgbar'); if(bar) bar.style.width=Math.max(0,Math.min(100,100-ms/40))+'%';
+    const key='d'+bg.next_draw_at;
+    if(ms<=0&&bgTickKey!==key){bgTickKey=key;setTimeout(()=>db.rpc('bingo_tick',{p_game:bg.id}),Math.random()*500)}
+  }
+}
+function bgCardHtml(c,solo){
+  const set=bgAuto?new Set(bg.drawn):bgSet(c), dr=new Set(bg.drawn);
+  const line=bgLine(c.nums,set);
+  const cells=c.nums.map((n,i)=>{
+    if(n===0) return `<div class="bc free">★</div>`;
+    const on=set.has(n), hot=!on&&dr.has(n);
+    return `<button class="bc ${on?'on':''} ${hot?'hot':''}" data-card="${c.id}" data-n="${n}" ${bgAuto?'disabled':''} aria-label="${bgLetter(n)} ${n}">${n}</button>`;
+  }).join('');
+  return `<div class="bcard ${solo?'solo':''} ${line?'line':''}"><div class="bhead">${BL.map(l=>`<span>${l}</span>`).join('')}</div><div class="bgrid">${cells}</div>${line&&bg.status==='drawing'?`<button class="btn bbingo" data-claim="${c.id}">BINGO!</button>`:''}</div>`;
+}
+function drawBingo(){
+  if(!bg){root.innerHTML=`${brand}<p class="empty">Laddar matchen…</p>`;loadBingo().then(()=>{watchBingo();drawPlay()});return}
+  const g=bg, me=bgMe();
+  if(!me){root.innerHTML=`${brand}<p class="empty">Du är inte med i den här matchen.</p>`;return}
+  if(g.status==='finished') return drawBingoFinal();
+  const top=`<div class="bgtop"><span class="bgpill">🪙 ${bgWallet??'–'}</span><span class="bgpill gold">Pott 🪙 ${g.pot}</span></div>`;
+  let mid='';
+  if(g.status==='buying'){
+    const doneN=bgp.filter(p=>p.bought).length;
+    mid=me.bought?`<div class="panel idp"><h2>Väntar på andra…</h2><p class="idtxt">${doneN} av ${bgp.length} klara. Start om <b id="bgcd"></b></p></div>`:
+      `<div class="panel idp"><h2>Köp brickor</h2><p class="idtxt">En bricka kostar 🪙 ${g.price}. Du har 🪙 ${bgWallet}.</p>
+      <div class="stepper"><button id="bm" aria-label="Färre">−</button><b id="bn">${bgBuyN}</b><button id="bp" aria-label="Fler">+</button></div>
+      <p class="idtxt" style="margin:0 0 14px">${bgBuyN} ${bgBuyN>1?'brickor':'bricka'} = 🪙 ${bgBuyN*g.price} · Start om <b id="bgcd"></b></p>
+      <button class="btn" id="bbuy" ${bgWallet<bgBuyN*g.price?'disabled':''}>Köp ${bgBuyN} ${bgBuyN>1?'brickor':'bricka'}</button>
+      <button class="btn ghost" id="bskip">Titta bara</button></div>`;
+  } else {
+    const last=g.last_ball, prev=g.drawn.slice(0,-1).slice(-6).reverse();
+    mid=`<div class="bgball ${last?'b'+bgLetter(last):''}" key="${last}">${last?`<small>${bgLetter(last)}</small><b>${last}</b>`:'<b>…</b>'}</div>
+      <div class="bgprev">${prev.map(n=>`<span class="pb b${bgLetter(n)}">${bgLetter(n)}${n}</span>`).join('')}</div>
+      <div class="timer" style="margin:12px 0"><div id="bgbar" style="height:100%;background:var(--gold)"></div></div>
+      <p class="idtxt" style="text-align:center;margin:0 0 10px">${g.drawn.length} av 75 tal</p>`;
+  }
+  const solo=bgCards.length===1;
+  const cards=bgCards.length?`<div class="bcards ${solo?'one':''}">${bgCards.map(c=>bgCardHtml(c,solo)).join('')}</div>`:(g.status==='drawing'?'<p class="empty">Du tittar på den här omgången.</p>':'');
+  const oth=bgp.filter(p=>p.user_id!==me.user_id).map(p=>{const pr=p.profiles||{};return `<span class="bgo">${esc(pr.avatar||'')} ${esc(pr.username||'')} · ${p.cards}</span>`}).join('');
+  root.innerHTML=`${brand}${top}${mid}${g.status==='drawing'?`<div class="bgopts"><label class="chk"><input type="checkbox" id="bauto" ${bgAuto?'checked':''}> Markera automatiskt</label><button class="btn sm ghost" id="bcall">${bgCalled?'Dölj':'Visa'} utropade tal</button></div>`:''}
+    ${bgCalled&&g.status==='drawing'?`<div class="bcalled">${BL.map((l,ci)=>`<div><b>${l}</b>${Array.from({length:15},(_,k)=>ci*15+k+1).map(n=>`<span class="${g.drawn.includes(n)?'d':''}">${n}</span>`).join('')}</div>`).join('')}</div>`:''}
+    ${cards}<div class="bgothers">${oth}</div>
+    <p style="text-align:center;margin-top:12px"><button class="btn sm ghost" id="endg">Avsluta matchen</button></p>`;
+  const eg=document.getElementById('endg'); eg.onclick=async()=>{if(eg.dataset.a!=='1'){eg.dataset.a='1';eg.textContent='Avsluta för alla? Tryck igen';return}await db.rpc('bingo_end_early',{p_game:g.id});await loadBingo();await loadMyTable();drawPlay()};
+  const bm=document.getElementById('bm'); if(bm){bm.onclick=()=>{bgBuyN=Math.max(1,bgBuyN-1);drawPlay()};document.getElementById('bp').onclick=()=>{bgBuyN=Math.min(4,bgBuyN+1);drawPlay()}}
+  const bb=document.getElementById('bbuy'); if(bb) bb.onclick=async()=>{bb.disabled=true;await db.rpc('bingo_buy',{p_game:g.id,p_n:bgBuyN});await loadBingo();drawPlay()};
+  const bs=document.getElementById('bskip'); if(bs) bs.onclick=async()=>{bs.disabled=true;await db.rpc('bingo_skip',{p_game:g.id});await loadBingo();drawPlay()};
+  const ba=document.getElementById('bauto'); if(ba) ba.onchange=()=>{bgAuto=ba.checked;drawPlay()};
+  const bc=document.getElementById('bcall'); if(bc) bc.onclick=()=>{bgCalled=!bgCalled;drawPlay()};
+  root.querySelectorAll('.bc.hot').forEach(b=>b.onclick=()=>{const c=bgCards.find(x=>x.id==b.dataset.card);if(c){bgSet(c).add(+b.dataset.n);drawPlay()}});
+  root.querySelectorAll('.bc.on:not([disabled])').forEach(b=>b.onclick=()=>{const c=bgCards.find(x=>x.id==b.dataset.card);if(c){bgSet(c).delete(+b.dataset.n);drawPlay()}});
+  const claim=async id=>{if(bgClaimed[id])return;bgClaimed[id]=1;const {error}=await db.rpc('bingo_claim',{p_game:g.id,p_card:id});await loadBingo();await loadMyTable();drawPlay()};
+  root.querySelectorAll('[data-claim]').forEach(b=>b.onclick=()=>claim(+b.dataset.claim));
+  if(g.status==='drawing'&&bgAuto){const hit=bgCards.find(c=>bgLine(c.nums,new Set(g.drawn)));if(hit) claim(hit.id)}
+  tickBingo();
+}
+function drawBingoFinal(){
+  const g=bg, w=g.winner_id?bgp.find(p=>p.user_id===g.winner_id):null, mine=g.winner_id===session.user.id;
+  const known=new Set([...friends,...incoming,...outgoing].map(x=>x.id));
+  root.innerHTML=`${brand}<div class="panel me"><div style="font-size:54px">${w?(mine?'🎉':'🏆'):'🏁'}</div><h2>${w?(mine?'BINGO! Du vann!':esc(((w.profiles||{}).username||'').toUpperCase())+' fick BINGO!'):'Matchen avslutades'}</h2>
+    ${w?`<p class="idtxt">Potten på 🪙 ${g.prize} gick till ${mine?'dig':esc((w.profiles||{}).username||'')}.</p>`:''}
+    <p class="idtxt">Du har nu 🪙 ${bgWallet??'–'}.</p>
+    <div class="sect">${bgp.map(p=>`<div class="row"><div class="av">${esc((p.profiles||{}).avatar||'🎴')}</div><div class="nm">${esc((p.profiles||{}).username||'')}<small>${p.cards} ${p.cards===1?'bricka':'brickor'}</small></div>
+    ${p.user_id!==session.user.id&&!known.has(p.user_id)&&!(p.profiles||{}).is_bot?`<button class="btn sm" data-addf="${p.user_id}">+ Lägg till vän</button>`:''}</div>`).join('')}</div>
+    <p class="idtxt">Spelmynt är bara på låtsas, inga riktiga pengar.</p>
+    <button class="btn" id="done" style="margin-top:12px">Klar</button></div>`;
+  root.querySelectorAll('[data-addf]').forEach(b=>b.onclick=async()=>{b.disabled=true;await db.from('friendships').insert({requester_id:session.user.id,addressee_id:b.dataset.addf});await loadFriends();drawBingoFinal()});
+  document.getElementById('done').onclick=()=>{dismissTable(curTable.id);stopGameChan();stopTableChan();curTable=null;bg=null;bgMarks={};bgClaimed={};playView='menu';drawPlay()};
+}
+
 db.auth.onAuthStateChange((ev,s)=>{
   if(s){ if(!session||session.user.id!==s.user.id) boot(s); else session=s }
-  else { session=null;me=null;editAv=null;page='home';curTable=null;tablePlayers=[];pk=null;un=null;idLoaded=false;idg=null;isAdm=false;admData=null;if(frChan){db.removeChannel(frChan);frChan=null}stopTableChan(); if(presence){db.removeChannel(presence);presence=null} showAuth() }
+  else { session=null;me=null;editAv=null;page='home';curTable=null;tablePlayers=[];pk=null;un=null;bg=null;idLoaded=false;idg=null;isAdm=false;admData=null;if(frChan){db.removeChannel(frChan);frChan=null}stopTableChan(); if(presence){db.removeChannel(presence);presence=null} showAuth() }
 });
 db.auth.getSession().then(({data})=>{if(!data.session)showAuth()});
 </script>
