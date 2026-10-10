@@ -889,7 +889,7 @@ function scheduleBot(){
   const key=[game.id,game.round_no,game.trick_no,game.turn_seat,game.phase,trickRows.length,gplayers.filter(p=>p.bid!==null).length].join('-');
   if(botKey===key&&botT) return;
   botKey=key; clearTimeout(botT);
-  botT=setTimeout(async()=>{botT=null;await db.rpc('bot_step',{p_game:game.id});await loadGame();if(page==='play')drawPlay()},950);
+  botT=setTimeout(async()=>{botT=null;await db.rpc('bot_step',{p_game:game.id});await loadGame();if(page==='play')drawPlay()},550);
 }
 async function showPlayerPopup(p){
   const pr=p.profiles||{};
@@ -972,7 +972,7 @@ function schedulePkBot(){
   const key=[pk.id,pk.hand_no,pk.phase,pk.turn_seat,pkp.map(p=>p.bet+'/'+p.stack).join(',')].join('-');
   if(pkBotKey===key&&pkBotT) return;
   pkBotKey=key; clearTimeout(pkBotT);
-  pkBotT=setTimeout(async()=>{pkBotT=null;await db.rpc('poker_bot_step',{p_game:pk.id});await loadPoker();if(page==='play')drawPlay()},1000);
+  pkBotT=setTimeout(async()=>{pkBotT=null;await db.rpc('poker_bot_step',{p_game:pk.id});await loadPoker();if(page==='play')drawPlay()},600);
 }
 function backCard(cls=''){return `<div class="pc back ${cls}"></div>`}
 function drawPoker(){
@@ -1125,7 +1125,7 @@ function scheduleUnoBot(){
   const key=[un.id,(un.last_event||{}).n,un.turn_seat,un.drawn_card].join('-');
   if(unBotKey===key&&unBotT) return;
   unBotKey=key; clearTimeout(unBotT);
-  unBotT=setTimeout(async()=>{unBotT=null;await db.rpc('uno_bot_step',{p_game:un.id});await loadUno();if(page==='play')drawPlay()},1100);
+  unBotT=setTimeout(async()=>{unBotT=null;await db.rpc('uno_bot_step',{p_game:un.id});await loadUno();if(page==='play')drawPlay()},650);
 }
 function unEvent(){
   const e=un.last_event; if(!e||e.kind==='start') return 'Matchen börjar!';
