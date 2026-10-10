@@ -264,6 +264,8 @@
   .fbopen:hover{background:var(--cream-dim);opacity:1}
   #fbtxt{width:100%;border:1px solid var(--felt-edge);border-radius:16px;padding:12px;font-size:16px;font-family:inherit;background:var(--cream);color:var(--ink);resize:vertical}
   #fbov .btn{margin-top:8px}
+  .fbi small{color:var(--ink-soft)}.fbi p{margin:6px 0 12px;white-space:pre-wrap;word-break:break-word}.fbi.done{opacity:.55}
+  .fbi{padding:16px 18px;margin-bottom:12px}
   .slot{width:44px;height:64px;border:1.5px dashed #b9ad8c;border-radius:8px}
   .mini{display:flex;gap:2px;min-height:34px}
   .pc.xs{width:24px;height:34px;font-size:11px;padding:2px;border-radius:5px}
@@ -389,6 +391,7 @@ async function boot(sess){
   if(error||!prof){await db.auth.signOut();return}
   me=prof;
   await loadFriends();
+  db.rpc('is_admin').then(({data})=>{isAdm=data===true;if(isAdm&&page==='profile')draw()});
   startPresence();
   await loadMyTable();
   await Promise.all([loadMyStats(),loadBoard()]);
@@ -408,7 +411,7 @@ function draw(){
   nav.hidden=false;
   navin.innerHTML=NAV.map(([k,ic,l])=>`<button data-p="${k}" class="${page===k?'on':''}" aria-label="${l}"><span class="ic">${ic}</span>${l}${k==='friends'&&incoming.length?`<span class="dot">${incoming.length}</span>`:''}</button>`).join('');
   navin.querySelectorAll('button').forEach(b=>b.onclick=()=>go(b.dataset.p));
-  ({home:drawHome,play:drawPlay,friends:drawFriends,top:drawTop,profile:drawProfile})[page]();
+  ({home:drawHome,play:drawPlay,friends:drawFriends,top:drawTop,profile:drawProfile,admin:drawAdmin})[page]();
 }
 
 /* ---------- HOME ---------- */
@@ -660,6 +663,7 @@ function drawProfile(){
   root.querySelectorAll('[data-gid]').forEach(b=>b.onclick=()=>showMatch(b.dataset.gid));
   bindAvatars(a=>{const v=document.getElementById('nu').value;editAv=a;drawProfile();document.getElementById('nu').value=v});
   root.insertAdjacentHTML('beforeend',feedbackLink());
+  if(isAdm){root.insertAdjacentHTML('beforeend','<p style="text-align:center"><button class="btn sm ghost" id="goadm">🛠 Admin</button></p>');document.getElementById('goadm').onclick=()=>{admData=null;go('admin')}}
   document.getElementById('out').onclick=()=>db.auth.signOut();
   document.getElementById('save').onclick=async()=>{
     const username=document.getElementById('nu').value.trim();
@@ -1292,9 +1296,39 @@ function openFeedback(){
   };
 }
 
+/* ---------- ADMIN ---------- */
+let isAdm=false, admData=null, admTab='over';
+const admFmt=d=>new Date(d).toLocaleDateString('sv-SE',{day:'numeric',month:'short'})+' '+new Date(d).toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'});
+async function loadAdmin(){const {data,error}=await db.rpc('admin_overview');admData=error?{error:true}:data}
+function drawAdmin(){
+  if(!isAdm){page='profile';return draw()}
+  if(!admData){root.innerHTML=`${brand}<p class="empty">Laddar…</p>`;loadAdmin().then(()=>{if(page==='admin')drawAdmin()});return}
+  if(admData.error){root.innerHTML=`${brand}${backBtn()}<p class="empty">Kunde inte hämta uppgifter.</p>`;document.getElementById('back').onclick=()=>go('profile');return}
+  const d=admData, onl=onlineIds?onlineIds.size:0;
+  const tile=(n,l)=>`<div class="stat"><b>${n}</b><span>${l}</span></div>`;
+  const gameRow=(n,g)=>`<div class="row"><div class="nm">${n}<small>${g.real!==undefined?`${g.real} utan bottar · `:''}${g.done} avslutade${g.won!==undefined?` · ${g.won} vinster`:''}</small></div><b>${g.total}</b></div>`;
+  let body='';
+  if(admTab==='over'){
+    body=`<div class="stats" style="grid-template-columns:repeat(3,1fr)">${tile(d.users,'Användare')}${tile(d.new7,'Nya 7 dagar')}${tile(onl,'Online nu')}</div>
+    <div class="stats" style="grid-template-columns:repeat(3,1fr)">${tile(d.games7,'Spel 7 dagar')}${tile(d.open_tables,'Öppna bord')}${tile(d.chat_msgs,'Chattar')}</div>
+    <h3 class="h">Spel (totalt startade)</h3><div class="panel">${gameRow('Trumf',d.trumf)}${gameRow("Texas Hold'em",d.poker)}${gameRow('UNO',d.uno)}${gameRow('Idioten',d.idiot)}</div>`;
+  } else if(admTab==='users'){
+    body=`<div class="panel">${d.users_list.map(u=>`<div class="row"><div class="av">${esc(u.avatar||'')}</div><div class="nm">${esc(u.username)}<small>Gick med ${admFmt(u.created_at)}</small></div></div>`).join('')||'<p class="empty">Inga användare.</p>'}</div>`;
+  } else {
+    body=d.feedback.length?d.feedback.map(f=>`<div class="panel fbi ${f.done?'done':''}"><small>${esc(f.username)} · ${admFmt(f.created_at)}${f.page?' · '+esc(f.page):''}</small><p>${esc(f.body)}</p><button class="btn sm ghost" data-fb="${f.id}" data-d="${f.done?0:1}">${f.done?'Markera som ny':'✓ Klar'}</button></div>`).join(''):'<p class="empty">Inga tips än.</p>';
+  }
+  root.innerHTML=`${brand}${backBtn()}<h2 style="font-size:28px;margin-bottom:14px">Admin</h2>
+    <div class="tabs" id="at">${[['over','Översikt'],['users','Användare'],['fb','Tips'+(d.feedback_open?' ('+d.feedback_open+')':'')]].map(([k,n])=>`<button data-t="${k}" class="${admTab===k?'on':''}">${n}</button>`).join('')}</div>${body}
+    <p style="text-align:center"><button class="btn sm ghost" id="admref">Uppdatera</button></p>`;
+  document.getElementById('back').onclick=()=>go('profile');
+  root.querySelectorAll('#at [data-t]').forEach(b=>b.onclick=()=>{admTab=b.dataset.t;drawAdmin()});
+  document.getElementById('admref').onclick=async()=>{admData=null;drawAdmin()};
+  root.querySelectorAll('[data-fb]').forEach(b=>b.onclick=async()=>{b.disabled=true;await db.rpc('admin_feedback_done',{p_id:+b.dataset.fb,p_done:b.dataset.d==='1'});await loadAdmin();drawAdmin()});
+}
+
 db.auth.onAuthStateChange((ev,s)=>{
   if(s){ if(!session||session.user.id!==s.user.id) boot(s); else session=s }
-  else { session=null;me=null;editAv=null;page='home';curTable=null;tablePlayers=[];pk=null;un=null;idLoaded=false;idg=null;if(frChan){db.removeChannel(frChan);frChan=null}stopTableChan(); if(presence){db.removeChannel(presence);presence=null} showAuth() }
+  else { session=null;me=null;editAv=null;page='home';curTable=null;tablePlayers=[];pk=null;un=null;idLoaded=false;idg=null;isAdm=false;admData=null;if(frChan){db.removeChannel(frChan);frChan=null}stopTableChan(); if(presence){db.removeChannel(presence);presence=null} showAuth() }
 });
 db.auth.getSession().then(({data})=>{if(!data.session)showAuth()});
 </script>
