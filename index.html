@@ -452,7 +452,7 @@ function startPresence(){
     if(page==='friends'||page==='home') draw();
   }).subscribe(async st=>{ if(st==='SUBSCRIBED') await presence.track({at:Date.now()}) });
 }
-const NEWS_KEY='news_coins_v1';
+const NEWS_KEY='news_coins_v2';
 function showNews(){
   try{if(localStorage.getItem(NEWS_KEY))return}catch(e){}
   if(document.getElementById('newsov')) return;
@@ -460,7 +460,7 @@ function showNews(){
   o.innerHTML=`<div class="ovlbox" style="max-width:360px;text-align:left"><div style="font-size:40px;text-align:center">🪙</div><h3 style="text-align:center;margin:4px 0 12px">Nytt: mynt i Spelhubben!</h3>
   <p class="idtxt" style="text-align:left;margin:0 0 6px">Alla spel använder nu samma mynt. Du startar med 100.</p>
   <ul style="margin:0 0 12px;padding-left:20px;font-size:15px;line-height:1.55">
-    <li>Har du färre än 50 mynt fylls det på till 50 varje dag.</li>
+    <li>Du får +10 mynt varje timme och +50 mynt en gång per dygn.</li><li>Loggar du inte in på 14 dagar slutar mynten att fyllas på.</li>
     <li><b>Trumf:</b> välj en insats. 1:an får 80 % av potten, 2:an 20 %.</li>
     <li><b>Hold'em:</b> du väljer hur många mynt du tar med. Det du har kvar får du tillbaka.</li>
     <li><b>Bingo:</b> välj pris per bricka. Bingo genom stjärnan ⭐ dubblar vinsten.</li>
@@ -543,7 +543,7 @@ let gameSel='trumf', curTable=null, tablePlayers=[], tableChan=null, publicTable
 const ERR={already_at_table:'Du sitter redan vid ett bord. Lämna det först.',not_found:'Hittade inget bord med den koden.',table_full:'Bordet är fullt.',already_started:'Spelet har redan startat.',bad_name:'Skriv ett namn på bordet (1–30 tecken).',not_logged_in:'Du måste logga in.',no_funds:'Någon har inte tillräckligt med mynt för insatsen.',bad_stake:'Ogiltig insats.',bad_buyin:'Ogiltig insats.'};
 let wallet=null;
 let wSpins=0,wFree=0;
-async function loadWallet(){try{const {data}=await db.rpc('wallet_info');if(data){wallet=data.balance;wSpins=data.spins||0;wFree=data.free_rounds||0}}catch(e){}}
+async function loadWallet(){try{const {data}=await db.rpc('wallet_info');if(data){wallet=data.balance;wSpins=data.spins||0;wFree=data.free_rounds||0;const gain=(data.hourly||0)+(data.daily||0);if(gain>0){const m='🪙 +'+gain+' mynt'+(data.daily?' (dagsbonus +'+data.daily+')':'');const t=el('div',{class:'reminder-toast'},m);document.body.appendChild(t);setTimeout(()=>t.remove(),3200)}}}catch(e){}}
 const wheelBtn=small=>(wSpins>0?`<button class="btn ${small?'sm':''}" data-wheel style="background:var(--gold);color:#2b2200;${small?'width:auto;margin:10px auto;display:block':'margin:0 0 14px'}">🎡 Snurra vinsthjulet (${wSpins})</button>`:'')+(wFree>0&&!small?`<p class="empty" style="padding:0 0 12px;text-align:center">🎟️ Du har en gratisomgång i Crazy Bingo.</p>`:'');
 const WSEG=[['c10','10 🪙'],['none','Tack'],['c25','25 🪙'],['spin','Snurr'],['c10','10 🪙'],['round','Gratis omg.'],['c100','100 🪙'],['none','Tack']];
 const WMSG={c10:'Du vann 10 mynt!',c25:'Du vann 25 mynt!',c100:'JACKPOT! 100 mynt!',spin:'Ett gratis snurr till!',round:'En gratisomgång i Crazy Bingo!',none:'Tyvärr, ingen vinst den här gången.'};
@@ -795,7 +795,7 @@ let editAv=null;
 function drawProfile(){
   if(editAv===null) editAv=me.avatar;
   root.innerHTML=`${brand}<div class="panel me">
-    <div class="big">${esc(me.avatar)}</div><h2>${esc(me.username)}</h2><p>${esc(session.user.email)}</p><p><b>🪙 ${wallet??'–'}</b> mynt · fylls på till 50 varje dag om du har färre</p>
+    <div class="big">${esc(me.avatar)}</div><h2>${esc(me.username)}</h2><p>${esc(session.user.email)}</p><p><b>🪙 ${wallet??'–'}</b> mynt · +10 varje timme och +50 varje dag. Stannar om du inte loggat in på 14 dagar.</p>
     <div class="sect"><h3>Statistik</h3>${myStats?statTiles(myStats):''}</div>
     <div class="sect"><h3>Matchhistorik</h3>${historyRows===null?'<p class="empty">Laddar…</p>':historyRows.length?historyRows.map(h=>`<button class="hist" data-gid="${h.game_id}"><span>${h.won?'🏆':'▫️'}</span><div class="nm">${h.won?'Vinst':h.rank+':a plats'} · ${h.my_total} p<small>${esc(h.opponents||'')} · ${new Date(h.finished_at).toLocaleDateString('sv-SE')}</small></div><span>›</span></button>`).join(''):'<p class="empty">Inga avslutade matcher ännu.</p>'}</div>
     <div class="sect"><h3>Ändra profil</h3>${noticeHtml()}
@@ -1565,7 +1565,7 @@ function drawBingo(){
   const g=bg, me=bgMe();
   if(!me){root.innerHTML=`${brand}<p class="empty">Du är inte med i den här matchen.</p>`;return}
   if(g.status==='finished') return drawBingoFinal();
-  const top=g.mode==='crazy'?`<div class="bgtop"><span class="bgpill">${g.has_bots?'Gratis övning':'🪙 '+(bgWallet??'–')}</span><span class="bgpill gold" id="bgleft">${g.status==='buying'?'Pris 🪙 '+g.price:'⏱ 3:00'}</span></div>`:g.has_bots?`<div class="bgtop"><span class="bgpill">Gratis övning</span></div>`:`<div class="bgtop"><span class="bgpill">🪙 ${bgWallet??'–'}</span><span class="bgpill gold">Pott 🪙 ${g.pot}</span></div>`;
+  const top=g.mode==='crazy'?`<div class="bgtop"><span class="bgpill">${g.has_bots?'Gratis övning':'🪙 '+(bgWallet??'–')}${(me.won||0)>0?` <small style="color:var(--forest);font-weight:800">+${me.won}</small>`:''}</span><span class="bgpill gold" id="bgleft">${g.status==='buying'?'Pris 🪙 '+g.price:'⏱ 3:00'}</span></div>`:g.has_bots?`<div class="bgtop"><span class="bgpill">Gratis övning</span></div>`:`<div class="bgtop"><span class="bgpill">🪙 ${bgWallet??'–'}</span><span class="bgpill gold">Pott 🪙 ${g.pot}</span></div>`;
   let mid='';
   if(g.status==='buying'){
     const doneN=bgp.filter(p=>p.bought).length;
