@@ -1374,7 +1374,7 @@ function drawAdmin(){
 }
 
 /* ---------- BINGO ---------- */
-let bg=null, bgp=[], bgCards=[], bgWallet=null, bgChan=null, bgTick=null, bgLoadT=null, bgBuyN=1, bgMarks={}, bgAuto=true, bgCalled=false, bgTickKey='', bgClaimed={};
+let bg=null, bgp=[], bgCards=[], bgWallet=null, bgChan=null, bgTick=null, bgLoadT=null, bgBuyN=1, bgMarks={}, bgAuto=false, bgCalled=false, bgTickKey='', bgClaimed={};
 const BL=['B','I','N','G','O'];
 const bgLetter=n=>BL[Math.min(4,Math.floor((n-1)/15))];
 const bgMe=()=>bgp.find(p=>p.user_id===session.user.id);
