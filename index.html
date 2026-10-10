@@ -432,7 +432,7 @@ async function boot(sess){
   db.rpc('is_admin').then(({data})=>{isAdm=data===true;if(isAdm&&page==='profile')draw()});
   startPresence();
   await loadMyTable();
-  await Promise.all([loadMyStats(),loadBoard()]);
+  await Promise.all([loadMyStats(),loadBoard(),loadWallet()]);
   const inv=new URLSearchParams(location.search).get('bord');
   if(inv){
     history.replaceState(null,'',location.pathname);
@@ -454,9 +454,10 @@ function draw(){
 
 /* ---------- HOME ---------- */
 function drawHome(){
+  {const w0=wallet;loadWallet().then(()=>{if(wallet!==w0&&page==='home')drawHome()})}
   const onl=friends.filter(f=>onlineIds.has(f.id));
   root.innerHTML=`${brand}${installBanner()}
-    <div class="greet"><div class="av">${esc(me.avatar)}</div><div><small>Välkommen tillbaka</small><h2>${esc(me.username)}</h2></div></div>
+    <div class="greet"><div class="av">${esc(me.avatar)}</div><div><small>Välkommen tillbaka</small><h2>${esc(me.username)}</h2></div><span class="bgpill" style="margin-left:auto" title="Dina mynt">🪙 ${wallet??'–'}</span></div>
     <div class="trumf"><h2>Spela Trumf</h2><p>${curTable?`Du sitter vid <b>${esc(curTable.name)}</b> (${tablePlayers.length}/${curTable.max_players}).`:'Skapa bord, bjud in vänner och spela 17 omgångar.'}</p>${!curTable&&friends.length===0?'<p style="margin:0 0 14px;font-size:13px;opacity:.85">Inga vänner ännu? Du kan spela mot bot.</p>':''}<button class="btn" id="goplay" style="background:var(--cream);color:var(--forest);box-shadow:none;width:auto;padding:12px 22px">${curTable?'Till lobbyn':'Spela nu'}</button></div>
     <div class="games">
       <button class="game" id="gopoker" style="border:none;cursor:pointer;font-family:inherit;color:var(--ink)">♠️ Texas Hold'em<span>Spela nu</span></button>
@@ -488,7 +489,10 @@ function drawHome(){
 /* ---------- BORD & LOBBY ---------- */
 const GN={trumf:'Trumf',poker:"Texas Hold'em",uno:'UNO',bingo:'Bingo',idiot:'Idioten'};
 let gameSel='trumf', curTable=null, tablePlayers=[], tableChan=null, publicTables=[], playView='menu', listTimer=null;
-const ERR={already_at_table:'Du sitter redan vid ett bord. Lämna det först.',not_found:'Hittade inget bord med den koden.',table_full:'Bordet är fullt.',already_started:'Spelet har redan startat.',bad_name:'Skriv ett namn på bordet (1–30 tecken).',not_logged_in:'Du måste logga in.'};
+const ERR={already_at_table:'Du sitter redan vid ett bord. Lämna det först.',not_found:'Hittade inget bord med den koden.',table_full:'Bordet är fullt.',already_started:'Spelet har redan startat.',bad_name:'Skriv ett namn på bordet (1–30 tecken).',not_logged_in:'Du måste logga in.',no_funds:'Någon har inte tillräckligt med mynt för insatsen.',bad_stake:'Ogiltig insats.',bad_buyin:'Ogiltig insats.'};
+let wallet=null;
+async function loadWallet(){try{const {data}=await db.rpc('bingo_wallet');if(data!=null)wallet=data}catch(e){}}
+const payHtml=(g,rows)=>{if(!g||!(g.pot>0)||!g.payout)return '';const L=rows.filter(p=>g.payout[p.user_id]>0).sort((a,b)=>g.payout[b.user_id]-g.payout[a.user_id]).map(p=>`<div class="score-line"><span>${esc((p.profiles||{}).avatar||'')} ${esc((p.profiles||{}).username||'')}</span><b>+🪙 ${g.payout[p.user_id]}</b></div>`).join('');return `<div class="sect"><h3>Potten 🪙 ${g.pot}</h3>${L||'<p class="empty">Insatserna återbetalades.</p>'}</div>`};
 const errText=e=>ERR[(e&&e.message)||'']||'Något gick fel. Försök igen.';
 const inviteLink=c=>location.origin+location.pathname+'?bord='+encodeURIComponent(c);
 
@@ -502,7 +506,7 @@ async function loadMyTable(){
   if(t.status!=='lobby'){ if(t.game==='poker'){ await loadPoker(); watchPoker() } else if(t.game==='uno'){ await loadUno(); watchUno() } else if(t.game==='bingo'){ await loadBingo(); watchBingo() } else { await loadGame(); watchGame() } } else { stopGameChan(); game=null; pk=null; un=null; bg=null }
 }
 async function loadPlayers(){
-  const {data}=await db.from('table_players').select('user_id,ready,joined_at,profiles(id,username,avatar)').eq('table_id',curTable.id).order('joined_at');
+  const {data}=await db.from('table_players').select('user_id,ready,joined_at,buyin,profiles(id,username,avatar)').eq('table_id',curTable.id).order('joined_at');
   tablePlayers=data||[];
 }
 function stopTableChan(){ if(tableChan){db.removeChannel(tableChan);tableChan=null} }
@@ -545,7 +549,7 @@ function seatsHtml(){
   for(let i=0;i<curTable.max_players;i++){
     const p=tablePlayers[i];
     if(p){ const pr=p.profiles||{}; const isOwner=p.user_id===curTable.owner_id;
-      out.push(`<div class="row"><div class="av">${esc(pr.avatar||'🎴')}</div><div class="nm">${esc(pr.username||'Spelare')}${p.user_id===session.user.id?' (du)':''}<small>${isOwner?'Bordets ägare':'Spelare'}</small></div><span class="pill ${p.ready?'ok':''}">${p.ready?'REDO':'Väntar'}</span></div>`);
+      out.push(`<div class="row"><div class="av">${esc(pr.avatar||'🎴')}</div><div class="nm">${esc(pr.username||'Spelare')}${p.user_id===session.user.id?' (du)':''}<small>${isOwner?'Bordets ägare':'Spelare'}</small></div>${curTable.game==='poker'?`<span class="pill">🪙 ${p.buyin}</span>`:''}<span class="pill ${p.ready?'ok':''}">${p.ready?'REDO':'Väntar'}</span></div>`);
     } else out.push(`<div class="row"><div class="av" style="opacity:.5">🪑</div><div class="nm" style="color:var(--ink-soft);font-weight:500">Ledig plats</div></div>`);
   }
   return out.join('');
@@ -559,6 +563,8 @@ function drawLobby(){
     ${noticeHtml()}
     <div class="panel codebox"><small>Spelkod</small><b>${esc(t.code)}</b>
       <button class="btn" id="share">Bjud in</button></div>
+    ${t.game==='trumf'&&t.stake>0?`<div class="panel" style="text-align:center"><b>Insats 🪙 ${t.stake} per spelare</b><p class="empty" style="padding:4px 0 0">Pott 🪙 ${t.stake*Math.max(tablePlayers.length,1)} · 1:an får 80 %, 2:an 20 %. Du har 🪙 ${wallet??'–'}.</p></div>`:''}
+    ${t.game==='poker'?`<div class="panel"><b>Din insats (mynt du tar med)</b><div class="tabs" style="margin-top:8px">${[20,50,100,200,500].map(n=>`<button type="button" data-bi="${n}" class="${(mine.buyin||50)===n?'on':''}" ${n>(wallet??0)?'disabled':''}>${n}</button>`).join('')}</div><p class="empty" style="padding:6px 0 0">Du har 🪙 ${wallet??'–'}. Det du har kvar när spelet slutar får du tillbaka.</p></div>`:''}
     <div class="panel">${seatsHtml()}</div>
     <button class="btn" id="ready">${mine.ready?'Ångra REDO':'Jag är REDO'}</button>
     ${owner?`<button class="btn" id="start" ${allReady?'':'disabled'} style="margin-top:10px">${allReady?'Starta spelet':'Starta när alla är redo'}</button>`:`<p class="empty">Ägaren startar spelet när alla är redo.</p>`}
@@ -566,6 +572,8 @@ function drawLobby(){
   document.getElementById('share').onclick=shareTable;
   document.getElementById('ready').onclick=async()=>{await db.rpc('set_ready',{p_table:t.id,p_ready:!mine.ready});await loadPlayers();drawLobby()};
   document.getElementById('leave').onclick=doLeave;
+  root.querySelectorAll('[data-bi]').forEach(b=>b.onclick=async()=>{await db.rpc('set_buyin',{p_table:t.id,p_buyin:+b.dataset.bi});await loadPlayers();drawLobby()});
+  if(wallet===null)loadWallet().then(()=>{if(page==='play'&&curTable&&curTable.status==='lobby')drawLobby()});
   const st=document.getElementById('start');
   if(st&&allReady) st.onclick=async()=>{st.disabled=true;const {error}=await db.rpc(({poker:'start_poker',uno:'start_uno',bingo:'start_bingo'})[t.game]||'start_game',{p_table:t.id});if(error){setNotice('err','Kunde inte starta: '+(error.message||''));drawLobby();return}await loadMyTable();drawPlay()};
 }
@@ -596,18 +604,22 @@ async function showBingoStats(){
 function drawBot(){
   root.innerHTML=`${brand}${backBtn()}<h2 style="font-size:28px;margin-bottom:8px">Spela mot bot</h2>
     <p class="empty" style="text-align:left;padding:0 0 14px">Välj hur många bottar du vill möta. Matcher mot bottar räknas inte i statistiken eller topplistan.</p>${noticeHtml()}
+    ${gameSel==='trumf'?`<label>Insats (mynt)</label><div class="tabs" style="margin-bottom:14px">${[0,10,20,50,100].map(n=>`<button type="button" data-bstake="${n}" class="${botStake===n?'on':''}" ${n>(wallet??0)?'disabled':''}>${n===0?'Ingen':n}</button>`).join('')}</div>`:''}${gameSel==='poker'?`<label>Din insats (mynt du tar med)</label><div class="tabs" style="margin-bottom:14px">${[20,50,100,200,500].map(n=>`<button type="button" data-bbuy="${n}" class="${botBuyin===n?'on':''}" ${n>(wallet??0)?'disabled':''}>${n}</button>`).join('')}</div>`:''}
     ${(gameSel!=='trumf'?[1,2,3,4,5]:[1,2,3]).map(n=>`<button class="opt" data-bots="${n}"><span>${'🤖'.repeat(n)}</span><div><b>${n} bot${n>1?'tar':''}</b><small>${n+1} spelare totalt</small></div></button>`).join('')}`;
   bindBack();
+  root.querySelectorAll('[data-bstake]').forEach(b=>b.onclick=()=>{botStake=+b.dataset.bstake;drawBot()});
+  root.querySelectorAll('[data-bbuy]').forEach(b=>b.onclick=()=>{botBuyin=+b.dataset.bbuy;drawBot()});
   root.querySelectorAll('[data-bots]').forEach(b=>b.onclick=async()=>{
     root.querySelectorAll('.opt').forEach(x=>x.disabled=true);
-    const {error}=await db.rpc(({poker:'start_bot_poker',uno:'start_bot_uno',bingo:'start_bot_bingo'})[gameSel]||'start_bot_game',{p_bots:+b.dataset.bots});
-    if(error){setNotice('err',errText(error));return drawBot()}
-    notice=null;playView='menu';await loadMyTable();drawPlay();
+    const args=gameSel==='trumf'?{p_bots:+b.dataset.bots,p_stake:botStake}:gameSel==='poker'?{p_bots:+b.dataset.bots,p_buyin:botBuyin}:{p_bots:+b.dataset.bots};
+    const {error}=await db.rpc(({poker:'start_bot_poker2',uno:'start_bot_uno',bingo:'start_bot_bingo'})[gameSel]||'start_bot_trumf',args);
+    if(error){await loadWallet();setNotice('err',errText(error));return drawBot()}
+    await loadWallet();notice=null;playView='menu';await loadMyTable();drawPlay();
   });
 }
 function backBtn(){return `<button class="btn ghost" id="back" style="margin-top:0;margin-bottom:16px;width:auto;padding:10px 18px">← Tillbaka</button>`}
 function bindBack(){document.getElementById('back').onclick=()=>{playView='menu';notice=null;drawPlay()}}
-let newPublic=false,newMax=4;
+let newPublic=false,newMax=4,newStake=0,botStake=0,botBuyin=50;
 function drawCreate(){
   if(gameSel==='trumf'&&newMax>4) newMax=4;
   root.innerHTML=`${brand}${backBtn()}<h2 style="font-size:28px;margin-bottom:16px">Skapa bord · ${GN[gameSel]}</h2>${noticeHtml()}
@@ -617,16 +629,19 @@ function drawCreate(){
       <div class="tabs">${(gameSel!=='trumf'?[2,3,4,5,6]:[2,3,4]).map(n=>`<button type="button" data-n="${n}" class="${newMax===n?'on':''}">${n}</button>`).join('')}</div>
       <label>Typ</label>
       <div class="tabs"><button type="button" data-pub="0" class="${!newPublic?'on':''}">Privat</button><button type="button" data-pub="1" class="${newPublic?'on':''}">Offentligt</button></div>
+      ${gameSel==='trumf'?`<label>Insats per spelare (mynt)</label><div class="tabs">${[0,10,20,50,100].map(n=>`<button type="button" data-stake="${n}" class="${newStake===n?'on':''}">${n===0?'Ingen':n}</button>`).join('')}</div><p class="empty" style="text-align:left;padding:6px 0 0">${newStake?'Alla lägger '+newStake+' mynt i potten. 1:an får 80 %, 2:an 20 %.':'Spela för äran, utan mynt.'}</p>`:''}
       <button class="btn" type="submit">Skapa bord</button></form>`;
   bindBack();
   const keep=()=>document.getElementById('tn').value;
   root.querySelectorAll('[data-n]').forEach(b=>b.onclick=()=>{const v=keep();newMax=+b.dataset.n;drawCreate();document.getElementById('tn').value=v});
   root.querySelectorAll('[data-pub]').forEach(b=>b.onclick=()=>{const v=keep();newPublic=b.dataset.pub==='1';drawCreate();document.getElementById('tn').value=v});
+  root.querySelectorAll('[data-stake]').forEach(b=>b.onclick=()=>{const v=keep();newStake=+b.dataset.stake;drawCreate();document.getElementById('tn').value=v});
   document.getElementById('cf').onsubmit=async e=>{
     e.preventDefault();
     const name=keep().trim(); if(!name){setNotice('err',ERR.bad_name);return drawCreate()}
-    const {error}=await db.rpc('create_game_table',{p_name:name,p_public:newPublic,p_max:newMax,p_game:gameSel});
+    const {data:nt,error}=await db.rpc('create_game_table',{p_name:name,p_public:newPublic,p_max:newMax,p_game:gameSel});
     if(error){setNotice('err',errText(error));return drawCreate()}
+    if(gameSel==='trumf'&&newStake>0&&nt&&nt.id){await db.rpc('set_stake',{p_table:nt.id,p_stake:newStake})}
     notice=null;playView='menu';await loadMyTable();drawPlay();
   };
 }
@@ -699,7 +714,7 @@ let editAv=null;
 function drawProfile(){
   if(editAv===null) editAv=me.avatar;
   root.innerHTML=`${brand}<div class="panel me">
-    <div class="big">${esc(me.avatar)}</div><h2>${esc(me.username)}</h2><p>${esc(session.user.email)}</p>
+    <div class="big">${esc(me.avatar)}</div><h2>${esc(me.username)}</h2><p>${esc(session.user.email)}</p><p><b>🪙 ${wallet??'–'}</b> mynt · fylls på till 50 varje dag om du har färre</p>
     <div class="sect"><h3>Statistik</h3>${myStats?statTiles(myStats):''}</div>
     <div class="sect"><h3>Matchhistorik</h3>${historyRows===null?'<p class="empty">Laddar…</p>':historyRows.length?historyRows.map(h=>`<button class="hist" data-gid="${h.game_id}"><span>${h.won?'🏆':'▫️'}</span><div class="nm">${h.won?'Vinst':h.rank+':a plats'} · ${h.my_total} p<small>${esc(h.opponents||'')} · ${new Date(h.finished_at).toLocaleDateString('sv-SE')}</small></div><span>›</span></button>`).join(''):'<p class="empty">Inga avslutade matcher ännu.</p>'}</div>
     <div class="sect"><h3>Ändra profil</h3>${noticeHtml()}
@@ -937,9 +952,9 @@ function drawFinal(){
   const mine=p=>scoreRows.filter(x=>x.user_id===p.user_id);
   root.innerHTML=`${brand}<div class="panel me"><div style="font-size:54px">🏆</div><h2>${esc((w.profiles||{}).username||'').toUpperCase()} VANN!</h2><div class="sect">${r.map((p,i)=>{const m=mine(p);return `<div class="row"><div class="av">${esc((p.profiles||{}).avatar||'🎴')}</div><div class="nm">${i+1}. ${esc((p.profiles||{}).username||'')}<small>${m.reduce((a,x)=>a+x.won,0)} stick · ${m.filter(x=>x.bid===x.won).length} exakta gissningar</small></div><b>${p.total}</b>
     ${p.user_id!==session.user.id&&!known.has(p.user_id)&&!(p.profiles||{}).is_bot?`<button class="btn sm" data-addf="${p.user_id}">+ Lägg till vän</button>`:''}</div>`}).join('')}</div>
-   ${gplayers.some(p=>(p.profiles||{}).is_bot)?'<p class="empty" style="padding:12px 0 0">Matchen mot bottar räknas inte i din statistik.</p>':''}<button class="btn" id="done" style="margin-top:18px">Klar</button></div>`;
+   ${payHtml(game,gplayers)}${gplayers.some(p=>(p.profiles||{}).is_bot)?'<p class="empty" style="padding:12px 0 0">Matchen mot bottar räknas inte i din statistik.</p>':''}<button class="btn" id="done" style="margin-top:18px">Klar</button></div>`;
   root.querySelectorAll('[data-addf]').forEach(b=>b.onclick=async()=>{b.disabled=true;await db.from('friendships').insert({requester_id:session.user.id,addressee_id:b.dataset.addf});await loadFriends();drawFinal()});
-  document.getElementById('done').onclick=async()=>{dismissTable(curTable.id);stopGameChan();stopTableChan();curTable=null;game=null;playView='menu';resetStats();loadMyStats();loadBoard();drawPlay()};
+  document.getElementById('done').onclick=async()=>{dismissTable(curTable.id);stopGameChan();stopTableChan();curTable=null;game=null;playView='menu';resetStats();loadMyStats();loadBoard();loadWallet();drawPlay()};
 }
 
 /* ---------- TEXAS HOLD'EM ---------- */
@@ -1083,10 +1098,11 @@ function drawPokerFinal(){
   const known=new Set([...friends,...incoming,...outgoing].map(x=>x.id));
   root.innerHTML=`${brand}<div class="panel me"><div style="font-size:54px">🏆</div><h2>${esc(((w.profiles||{}).username||'').toUpperCase())} VANN!</h2><div class="sect">${r.map((p,i)=>`<div class="row"><div class="av">${esc((p.profiles||{}).avatar||'🎴')}</div><div class="nm">${p.place||i+1}. ${esc((p.profiles||{}).username||'')}<small>${chips(p.stack)} marker</small></div>
     ${p.user_id!==session.user.id&&!known.has(p.user_id)&&!(p.profiles||{}).is_bot?`<button class="btn sm" data-addf="${p.user_id}">+ Lägg till vän</button>`:''}</div>`).join('')}</div>
+    ${pk&&pk.payout?`<div class="sect"><h3>Utbetalning</h3>${pkp.map(p=>`<div class="score-line"><span>${esc((p.profiles||{}).avatar||'')} ${esc((p.profiles||{}).username||'')}</span><b>🪙 ${pk.payout[p.user_id]||0}</b></div>`).join('')}</div>`:''}
     ${pkp.some(p=>(p.profiles||{}).is_bot)?'<p class="empty" style="padding:12px 0 0">Matchen mot bottar räknas inte i statistiken.</p>':''}
     <button class="btn" id="done" style="margin-top:18px">Klar</button></div>`;
   root.querySelectorAll('[data-addf]').forEach(b=>b.onclick=async()=>{b.disabled=true;await db.from('friendships').insert({requester_id:session.user.id,addressee_id:b.dataset.addf});await loadFriends();drawPokerFinal()});
-  document.getElementById('done').onclick=()=>{dismissTable(curTable.id);stopGameChan();stopTableChan();curTable=null;pk=null;playView='menu';drawPlay()};
+  document.getElementById('done').onclick=()=>{dismissTable(curTable.id);stopGameChan();stopTableChan();curTable=null;pk=null;playView='menu';loadWallet().then(()=>drawPlay());drawPlay()};
 }
 
 /* ---------- UNO ---------- */
