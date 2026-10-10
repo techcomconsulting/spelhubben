@@ -582,6 +582,13 @@ function drawPlay(){
     <button class="opt" data-v="bot"><span>🤖</span><div><b>Spela mot bot</b><small>Träna själv, 1–${gameSel==='trumf'?3:5} bottar</small></div></button>`;
   bindTabs();
   root.querySelectorAll('.opt').forEach(b=>b.onclick=async()=>{playView=b.dataset.v;notice=null;if(playView==='public')await loadPublic();drawPlay()});
+  if(gameSel==='bingo') showBingoStats();
+}
+async function showBingoStats(){
+  const [a,w]=await Promise.all([db.rpc('bingo_stats'),db.rpc('bingo_wallet')]);
+  if(page!=='play'||gameSel!=='bingo'||curTable||playView!=='menu'||!a.data) return;
+  const d=a.data, net=d.won-d.spent, t=(n,l)=>`<div class="stat"><b>${n}</b><span>${l}</span></div>`;
+  root.insertAdjacentHTML('beforeend',`<h3 class="h">Din bingo</h3><div class="stats" style="grid-template-columns:repeat(3,1fr)">${t('🪙 '+(w.data??'–'),'Dina mynt')}${t(d.played,'Matcher')}${t(d.wins,'Bingon')}</div><div class="stats" style="grid-template-columns:repeat(3,1fr)">${t(d.cards,'Brickor köpta')}${t('🪙 '+d.best,'Största vinst')}${t((net>0?'+':'')+net,'Vinst/förlust')}</div><p class="idtxt" style="text-align:center">Spelmynt är på låtsas, inga riktiga pengar.</p>`);
 }
 function drawBot(){
   root.innerHTML=`${brand}${backBtn()}<h2 style="font-size:28px;margin-bottom:8px">Spela mot bot</h2>
@@ -1337,7 +1344,7 @@ function openFeedback(){
 /* ---------- ADMIN ---------- */
 let isAdm=false, admData=null, admTab='over';
 const admFmt=d=>new Date(d).toLocaleDateString('sv-SE',{day:'numeric',month:'short'})+' '+new Date(d).toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'});
-async function loadAdmin(){const [a,c]=await Promise.all([db.rpc('admin_overview'),db.rpc('admin_clicks')]);admData=a.error?{error:true}:{...a.data,clicks:(c&&c.data)||null}}
+async function loadAdmin(){const [a,c,bi]=await Promise.all([db.rpc('admin_overview'),db.rpc('admin_clicks'),db.rpc('admin_bingo')]);admData=a.error?{error:true}:{...a.data,clicks:(c&&c.data)||null,bingo:(bi&&bi.data)||null}}
 function drawAdmin(){
   if(!isAdm){page='profile';return draw()}
   if(!admData){root.innerHTML=`${brand}<p class="empty">Laddar…</p>`;loadAdmin().then(()=>{if(page==='admin')drawAdmin()});return}
@@ -1349,7 +1356,7 @@ function drawAdmin(){
   if(admTab==='over'){
     body=`<div class="stats" style="grid-template-columns:repeat(3,1fr)">${tile(d.users,'Användare')}${tile(d.new7,'Nya 7 dagar')}${tile(onl,'Online nu')}</div>
     <div class="stats" style="grid-template-columns:repeat(3,1fr)">${tile(d.games7,'Spel 7 dagar')}${tile(d.open_tables,'Öppna bord')}${tile(d.chat_msgs,'Chattar')}</div>
-    ${d.clicks?`<h3 class="h">Techtown</h3><div class="stats" style="grid-template-columns:repeat(3,1fr)">${tile(d.clicks.techtown.total,'Klick totalt')}${tile(d.clicks.techtown.users,'Olika personer')}${tile(d.clicks.techtown.d7,'Senaste 7 dagar')}</div>${d.clicks.techtown.last.length?`<div class="panel">${d.clicks.techtown.last.map(x=>`<div class="row"><div class="nm">${esc(x.username)}<small>${admFmt(x.created_at)}</small></div></div>`).join('')}</div>`:''}`:''}<h3 class="h">Spel (totalt startade)</h3><div class="panel">${gameRow('Trumf',d.trumf)}${gameRow("Texas Hold'em",d.poker)}${gameRow('UNO',d.uno)}${gameRow('Idioten',d.idiot)}</div>`;
+    ${d.clicks?`<h3 class="h">Techtown</h3><div class="stats" style="grid-template-columns:repeat(3,1fr)">${tile(d.clicks.techtown.total,'Klick totalt')}${tile(d.clicks.techtown.users,'Olika personer')}${tile(d.clicks.techtown.d7,'Senaste 7 dagar')}</div>${d.clicks.techtown.last.length?`<div class="panel">${d.clicks.techtown.last.map(x=>`<div class="row"><div class="nm">${esc(x.username)}<small>${admFmt(x.created_at)}</small></div></div>`).join('')}</div>`:''}`:''}<h3 class="h">Spel (totalt startade)</h3><div class="panel">${gameRow('Trumf',d.trumf)}${gameRow("Texas Hold'em",d.poker)}${gameRow('UNO',d.uno)}${gameRow('Idioten',d.idiot)}</div>${d.bingo?`<h3 class="h">Bingo</h3><div class="stats" style="grid-template-columns:repeat(3,1fr)">${tile(d.bingo.total,'Matcher')}${tile(d.bingo.players,'Spelare')}${tile(d.bingo.cards,'Brickor köpta')}</div><p class="idtxt" style="text-align:center">${d.bingo.real} utan bottar · ${d.bingo.done} med vinnare · 🪙 ${d.bingo.coins_in} mynt hos spelarna</p>`:''}`;
   } else if(admTab==='users'){
     body=`<div class="panel">${d.users_list.map(u=>`<div class="row"><div class="av">${esc(u.avatar||'')}</div><div class="nm">${esc(u.username)}<small>Gick med ${admFmt(u.created_at)}</small></div></div>`).join('')||'<p class="empty">Inga användare.</p>'}</div>`;
   } else {
