@@ -1625,7 +1625,7 @@ function drawBingo(){
     if(!error&&data){const unit=g.practice?'poäng':'🪙';const m=(data.full?'🎉 FULL BRICKA! +1 snurr · ':'')+(data.lines>0?'+'+data.lines+(data.lines>1?' rader':' rad')+' · ':'')+'+'+(g.practice?data.coins+' poäng':'🪙 '+data.coins);const t=el('div',{class:'reminder-toast'},m);document.body.appendChild(t);setTimeout(()=>t.remove(),2600)}
     await loadBingo();await loadWallet();drawPlay();
   });
-  if(g.status==='drawing'&&bgAuto){const hit=bgCards.find(c=>bgLine(c.nums,new Set(g.drawn)));if(hit) claim(hit.id)}
+  if(g.status==='drawing'&&bgAuto&&g.mode!=='crazy'){const hit=bgCards.find(c=>bgLine(c.nums,new Set(g.drawn)));if(hit) claim(hit.id)}
   bgAnimBall=g.id+'-'+g.last_ball;
   tickBingo();
 }
