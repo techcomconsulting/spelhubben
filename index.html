@@ -1486,7 +1486,7 @@ function tickBingo(){
 }
 function bgCardHtml(c,solo){
   const set=bgAuto?new Set(bg.drawn):bgSet(c), dr=new Set(bg.drawn);
-  const line=bgLine(c.nums,set);
+  const line=bgLine(c.nums,bgAuto?set:new Set([...set].filter(n=>dr.has(n))));
   const cells=c.nums.map((n,i)=>{
     if(n===0) return `<div class="bc free">★</div>`;
     const on=set.has(n), hot=!on&&dr.has(n)&&!(n===bg.last_ball&&!bgHotOk());
@@ -1529,7 +1529,7 @@ function drawBingo(){
   const bs=document.getElementById('bskip'); if(bs) bs.onclick=async()=>{bs.disabled=true;await db.rpc('bingo_skip',{p_game:g.id});await loadBingo();drawPlay()};
   const ba=document.getElementById('bauto'); if(ba) ba.onchange=()=>{bgAuto=ba.checked;drawPlay()};
   const bc=document.getElementById('bcall'); if(bc) bc.onclick=()=>{bgCalled=!bgCalled;drawPlay()};
-  root.querySelectorAll('.bc.hot').forEach(b=>b.onclick=()=>{const c=bgCards.find(x=>x.id==b.dataset.card);if(c){bgSet(c).add(+b.dataset.n);drawPlay()}});
+  root.querySelectorAll('.bc:not(.on):not([disabled])').forEach(b=>b.onclick=()=>{const c=bgCards.find(x=>x.id==b.dataset.card);if(c){bgSet(c).add(+b.dataset.n);drawPlay()}});
   root.querySelectorAll('.bc.on:not([disabled])').forEach(b=>b.onclick=()=>{const c=bgCards.find(x=>x.id==b.dataset.card);if(c){bgSet(c).delete(+b.dataset.n);drawPlay()}});
   const claim=async id=>{if(bgClaimed[id])return;bgClaimed[id]=1;const {error}=await db.rpc('bingo_claim',{p_game:g.id,p_card:id});await loadBingo();await loadMyTable();drawPlay()};
   root.querySelectorAll('[data-claim]').forEach(b=>b.onclick=()=>claim(+b.dataset.claim));
