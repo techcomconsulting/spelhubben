@@ -488,6 +488,7 @@ function drawHome(){
       <button class="game" id="gopoker" style="border:none;cursor:pointer;font-family:inherit;color:var(--ink)">♠️ Texas Hold'em<span>Spela nu</span></button>
       <button class="game" id="goidiot" style="border:none;cursor:pointer;font-family:inherit;color:var(--ink)">🃏 Idioten<span>Patiens</span></button>
       <button class="game" id="gobingo" style="border:none;cursor:pointer;font-family:inherit;color:var(--ink)">🎱 Bingo<span>Spela nu</span></button>
+      <button class="game" id="gocrazy" style="border:none;cursor:pointer;font-family:inherit;color:var(--ink)">🎰 Crazy Bingo<span>Många bingon</span></button>
       <button class="game" id="gouno" style="border:none;cursor:pointer;font-family:inherit;color:var(--ink)">🟥 UNO<span>Spela nu</span></button>
       <div class="game" style="grid-column:1/-1">Skip-Bo<span>Kommer senare</span></div>
       <a class="game" id="gotown" href="https://techtown-spel.pages.dev" target="_blank" rel="noopener" style="grid-column:1/-1;text-decoration:none;color:var(--ink)">🏙️ Techtown<span>Bygg din egen stad</span></a>
@@ -508,11 +509,12 @@ function drawHome(){
   const tt=document.getElementById('gotown'); if(tt) tt.addEventListener('click',()=>{db.rpc('track_click',{p_target:'techtown'})});
   document.getElementById('goidiot').onclick=()=>{gameSel='idiot';playView='menu';go('play')};
   document.getElementById('gobingo').onclick=()=>{gameSel='bingo';go('play')};
+  document.getElementById('gocrazy').onclick=()=>{gameSel='crazy';go('play')};
   document.getElementById('gouno').onclick=()=>{gameSel='uno';go('play')};
   document.getElementById('gopoker').onclick=()=>{gameSel='poker';go('play')};
 }
 /* ---------- BORD & LOBBY ---------- */
-const GN={trumf:'Trumf',poker:"Texas Hold'em",uno:'UNO',bingo:'Bingo',idiot:'Idioten'};
+const GN={trumf:'Trumf',poker:"Texas Hold'em",uno:'UNO',bingo:'Bingo',crazy:'Crazy Bingo',idiot:'Idioten'};
 let gameSel='trumf', curTable=null, tablePlayers=[], tableChan=null, publicTables=[], playView='menu', listTimer=null;
 const ERR={already_at_table:'Du sitter redan vid ett bord. Lämna det först.',not_found:'Hittade inget bord med den koden.',table_full:'Bordet är fullt.',already_started:'Spelet har redan startat.',bad_name:'Skriv ett namn på bordet (1–30 tecken).',not_logged_in:'Du måste logga in.',no_funds:'Någon har inte tillräckligt med mynt för insatsen.',bad_stake:'Ogiltig insats.',bad_buyin:'Ogiltig insats.'};
 let wallet=null;
@@ -528,7 +530,7 @@ async function loadMyTable(){
   const t=data&&data[0]&&data[0].tables;
   if(!t||(t.status==='finished'&&dismissedId()===t.id)){ stopTableChan(); stopGameChan(); curTable=null; tablePlayers=[]; game=null; pk=null; un=null; bg=null; return }
   curTable=t; await loadPlayers(); watchTable();
-  if(t.status!=='lobby'){ if(t.game==='poker'){ await loadPoker(); watchPoker() } else if(t.game==='uno'){ await loadUno(); watchUno() } else if(t.game==='bingo'){ await loadBingo(); watchBingo() } else { await loadGame(); watchGame() } } else { stopGameChan(); game=null; pk=null; un=null; bg=null }
+  if(t.status!=='lobby'){ if(t.game==='poker'){ await loadPoker(); watchPoker() } else if(t.game==='uno'){ await loadUno(); watchUno() } else if(t.game==='bingo'||t.game==='crazy'){ await loadBingo(); watchBingo() } else { await loadGame(); watchGame() } } else { stopGameChan(); game=null; pk=null; un=null; bg=null }
 }
 async function loadPlayers(){
   const {data}=await db.from('table_players').select('user_id,ready,joined_at,buyin,profiles(id,username,avatar)').eq('table_id',curTable.id).order('joined_at');
@@ -588,6 +590,7 @@ function drawLobby(){
     ${noticeHtml()}
     <div class="panel codebox"><small>Spelkod</small><b>${esc(t.code)}</b>
       <button class="btn" id="share">Bjud in</button></div>
+    ${t.game==='crazy'?`<div class="panel" style="text-align:center"><b>Pris per bricka 🪙 ${Math.max(t.stake,1)}</b><p class="empty" style="padding:4px 0 0">3 minuter, kulor var 3:e sekund. Varje bingo-rad ger mynt direkt, full bricka ger jackpot. Tryck BINGO! själv.</p></div>`:''}
     ${t.game==='bingo'?`<div class="panel" style="text-align:center"><b>Pris per bricka 🪙 ${Math.max(t.stake,1)}</b><p class="empty" style="padding:4px 0 0">Vinnaren tar hela potten. Bingo genom stjärnan ⭐ dubblar vinsten.</p></div>`:''}
     ${t.game==='trumf'&&t.stake>0?`<div class="panel" style="text-align:center"><b>Insats 🪙 ${t.stake} per spelare</b><p class="empty" style="padding:4px 0 0">Pott 🪙 ${t.stake*Math.max(tablePlayers.length,1)} · 1:an får 80 %, 2:an 20 %. Du har 🪙 ${wallet??'–'}.</p></div>`:''}
     ${t.game==='poker'?`<div class="panel"><b>Din insats (mynt du tar med)</b><div class="tabs" style="margin-top:8px">${[20,50,100,200,500].map(n=>`<button type="button" data-bi="${n}" class="${(mine.buyin||50)===n?'on':''}" ${n>(wallet??0)?'disabled':''}>${n}</button>`).join('')}</div><p class="empty" style="padding:6px 0 0">Du har 🪙 ${wallet??'–'}. Det du har kvar när spelet slutar får du tillbaka.</p></div>`:''}
@@ -601,11 +604,11 @@ function drawLobby(){
   root.querySelectorAll('[data-bi]').forEach(b=>b.onclick=async()=>{await db.rpc('set_buyin',{p_table:t.id,p_buyin:+b.dataset.bi});await loadPlayers();drawLobby()});
   if(wallet===null)loadWallet().then(()=>{if(page==='play'&&curTable&&curTable.status==='lobby')drawLobby()});
   const st=document.getElementById('start');
-  if(st&&allReady) st.onclick=async()=>{st.disabled=true;const {error}=await db.rpc(({poker:'start_poker',uno:'start_uno',bingo:'start_bingo'})[t.game]||'start_game',{p_table:t.id});if(error){setNotice('err','Kunde inte starta: '+(error.message||''));drawLobby();return}await loadMyTable();drawPlay()};
+  if(st&&allReady) st.onclick=async()=>{st.disabled=true;const {error}=await db.rpc(({poker:'start_poker',uno:'start_uno',bingo:'start_bingo',crazy:'start_bingo'})[t.game]||'start_game',{p_table:t.id});if(error){setNotice('err','Kunde inte starta: '+(error.message||''));drawLobby();return}await loadMyTable();drawPlay()};
 }
 function drawPlay(){
   if(listTimer){clearInterval(listTimer);listTimer=null}
-  if(curTable&&curTable.status!=='lobby') return curTable.game==='poker'?drawPoker():curTable.game==='uno'?drawUno():curTable.game==='bingo'?drawBingo():drawGame();
+  if(curTable&&curTable.status!=='lobby') return curTable.game==='poker'?drawPoker():curTable.game==='uno'?drawUno():(curTable.game==='bingo'||curTable.game==='crazy')?drawBingo():drawGame();
   if(curTable) return drawLobby();
   if(playView==='create') return drawCreate();
   if(playView==='join') return drawJoinCode();
@@ -619,11 +622,11 @@ function drawPlay(){
     <button class="opt" data-v="bot"><span>🤖</span><div><b>Spela mot bot</b><small>Träna själv, 1–${gameSel==='trumf'?3:5} bottar</small></div></button>`;
   bindTabs();
   root.querySelectorAll('.opt').forEach(b=>b.onclick=async()=>{playView=b.dataset.v;notice=null;if(playView==='public')await loadPublic();drawPlay()});
-  if(gameSel==='bingo') showBingoStats();
+  if(gameSel==='bingo'||gameSel==='crazy') showBingoStats();
 }
 async function showBingoStats(){
   const [a,w]=await Promise.all([db.rpc('bingo_stats'),db.rpc('bingo_wallet')]);
-  if(page!=='play'||gameSel!=='bingo'||curTable||playView!=='menu'||!a.data) return;
+  if(page!=='play'||(gameSel!=='bingo'&&gameSel!=='crazy')||curTable||playView!=='menu'||!a.data) return;
   const d=a.data, net=d.won-d.spent, t=(n,l)=>`<div class="stat"><b>${n}</b><span>${l}</span></div>`;
   root.insertAdjacentHTML('beforeend',`<h3 class="h">Din bingo</h3><div class="stats" style="grid-template-columns:repeat(3,1fr)">${t('🪙 '+(w.data??'–'),'Dina mynt')}${t(d.played,'Matcher')}${t(d.wins,'Bingon')}</div><div class="stats" style="grid-template-columns:repeat(3,1fr)">${t(d.cards,'Brickor köpta')}${t('🪙 '+d.best,'Största vinst')}${t((net>0?'+':'')+net,'Vinst/förlust')}</div><p class="idtxt" style="text-align:center">Spelmynt är på låtsas, inga riktiga pengar.</p>`);
 }
@@ -636,7 +639,7 @@ function drawBot(){
   root.querySelectorAll('[data-bots]').forEach(b=>b.onclick=async()=>{
     root.querySelectorAll('.opt').forEach(x=>x.disabled=true);
     const args=gameSel==='trumf'?{p_bots:+b.dataset.bots,p_stake:0}:gameSel==='poker'?{p_bots:+b.dataset.bots,p_buyin:50}:{p_bots:+b.dataset.bots};
-    const {error}=await db.rpc(({poker:'start_bot_poker2',uno:'start_bot_uno',bingo:'start_bot_bingo'})[gameSel]||'start_bot_trumf',args);
+    const {error}=await db.rpc(({poker:'start_bot_poker2',uno:'start_bot_uno',bingo:'start_bot_bingo',crazy:'start_bot_crazy'})[gameSel]||'start_bot_trumf',args);
     if(error){await loadWallet();setNotice('err',errText(error));return drawBot()}
     await loadWallet();notice=null;playView='menu';await loadMyTable();drawPlay();
   });
@@ -646,6 +649,7 @@ function bindBack(){document.getElementById('back').onclick=()=>{playView='menu'
 let newPublic=false,newMax=4,newStake=0,botStake=0,botBuyin=50;
 function drawCreate(){
   if(gameSel==='bingo'&&![1,2,5,10].includes(newStake)) newStake=1;
+  if(gameSel==='crazy'&&![5,10,20].includes(newStake)) newStake=5;
   if(gameSel==='trumf'&&![0,10,20,50,100].includes(newStake)) newStake=0;
   if(gameSel==='trumf'&&newMax>4) newMax=4;
   root.innerHTML=`${brand}${backBtn()}<h2 style="font-size:28px;margin-bottom:16px">Skapa bord · ${GN[gameSel]}</h2>${noticeHtml()}
@@ -655,7 +659,7 @@ function drawCreate(){
       <div class="tabs">${(gameSel!=='trumf'?[2,3,4,5,6]:[2,3,4]).map(n=>`<button type="button" data-n="${n}" class="${newMax===n?'on':''}">${n}</button>`).join('')}</div>
       <label>Typ</label>
       <div class="tabs"><button type="button" data-pub="0" class="${!newPublic?'on':''}">Privat</button><button type="button" data-pub="1" class="${newPublic?'on':''}">Offentligt</button></div>
-      ${gameSel==='bingo'?`<label>Pris per bricka (mynt)</label><div class="tabs">${[1,2,5,10].map(n=>`<button type="button" data-stake="${n}" class="${newStake===n?'on':''}">${n}</button>`).join('')}</div><p class="empty" style="text-align:left;padding:6px 0 0">Vinnaren får hela potten. Bingo genom stjärnan ⭐ i mitten dubblar vinsten.</p>`:''}${gameSel==='trumf'?`<label>Insats per spelare (mynt)</label><div class="tabs">${[0,10,20,50,100].map(n=>`<button type="button" data-stake="${n}" class="${newStake===n?'on':''}">${n===0?'Ingen':n}</button>`).join('')}</div><p class="empty" style="text-align:left;padding:6px 0 0">${newStake?'Alla lägger '+newStake+' mynt i potten. 1:an får 80 %, 2:an 20 %.':'Spela för äran, utan mynt.'}</p>`:''}
+      ${gameSel==='crazy'?`<label>Pris per bricka (mynt)</label><div class="tabs">${[5,10,20].map(n=>`<button type="button" data-stake="${n}" class="${newStake===n?'on':''}">${n}</button>`).join('')}</div><p class="empty" style="text-align:left;padding:6px 0 0">Rad = ${Math.max(1,Math.round(newStake*0.3))} mynt, full bricka = ${newStake*30} mynt. Spelet pågår i 3 minuter.</p>`:''}${gameSel==='bingo'?`<label>Pris per bricka (mynt)</label><div class="tabs">${[1,2,5,10].map(n=>`<button type="button" data-stake="${n}" class="${newStake===n?'on':''}">${n}</button>`).join('')}</div><p class="empty" style="text-align:left;padding:6px 0 0">Vinnaren får hela potten. Bingo genom stjärnan ⭐ i mitten dubblar vinsten.</p>`:''}${gameSel==='trumf'?`<label>Insats per spelare (mynt)</label><div class="tabs">${[0,10,20,50,100].map(n=>`<button type="button" data-stake="${n}" class="${newStake===n?'on':''}">${n===0?'Ingen':n}</button>`).join('')}</div><p class="empty" style="text-align:left;padding:6px 0 0">${newStake?'Alla lägger '+newStake+' mynt i potten. 1:an får 80 %, 2:an 20 %.':'Spela för äran, utan mynt.'}</p>`:''}
       <button class="btn" type="submit">Skapa bord</button></form>`;
   bindBack();
   const keep=()=>document.getElementById('tn').value;
@@ -667,7 +671,7 @@ function drawCreate(){
     const name=keep().trim(); if(!name){setNotice('err',ERR.bad_name);return drawCreate()}
     const {data:nt,error}=await db.rpc('create_game_table',{p_name:name,p_public:newPublic,p_max:newMax,p_game:gameSel});
     if(error){setNotice('err',errText(error));return drawCreate()}
-    if((gameSel==='trumf'||gameSel==='bingo')&&newStake>0&&nt&&nt.id){await db.rpc('set_stake',{p_table:nt.id,p_stake:newStake})}
+    if((gameSel==='trumf'||gameSel==='bingo'||gameSel==='crazy')&&newStake>0&&nt&&nt.id){await db.rpc('set_stake',{p_table:nt.id,p_stake:newStake})}
     notice=null;playView='menu';await loadMyTable();drawPlay();
   };
 }
@@ -795,15 +799,15 @@ function drawTopTrumf(){
     ${myI<0&&r.length?`<p class="empty">Du syns här när du har spelat klart en match${topCat==='pct'?' (minst tre)':''}.</p>`:''}`;
   root.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{topCat=b.dataset.c;drawTop()});
 }
-const TOPG=[['trumf','Trumf'],['poker',"Hold'em"],['uno','UNO'],['bingo','Bingo'],['idiot','Idioten']];
+const TOPG=[['trumf','Trumf'],['poker',"Hold'em"],['uno','UNO'],['bingo','Bingo'],['crazy','Crazy Bingo'],['idiot','Idioten']];
 function topTabs(){return `<h2 style="font-size:28px;margin-bottom:14px">Topplista</h2><div class="chips">${TOPG.map(g=>`<button data-tg="${g[0]}" class="${topGame===g[0]?'on':''}">${g[1]}</button>`).join('')}</div>`}
 function bindTopTabs(){root.querySelectorAll('[data-tg]').forEach(b=>b.onclick=()=>{topGame=b.dataset.tg;drawTop()})}
 function drawTop(){
   if(topGame==='trumf'){drawTopTrumf();bindTopTabs();return}
   const rows=boardG[topGame];
   if(!rows){root.innerHTML=`${brand}${topTabs()}<p class="empty">Laddar topplistan…</p>`;bindTopTabs();const g=topGame;db.rpc('leaderboard_game',{p_game:g}).then(r=>{boardG[g]=r.data||[];if(page==='top'&&topGame===g)drawTop()});return}
-  const r=[...rows].sort((a,b)=>b.wins-a.wins||b.wins/b.matches-a.wins/a.matches||b.matches-a.matches), myI=r.findIndex(x=>x.user_id===session.user.id);
-  const val=x=>`${x.wins} ${x.wins===1?'vinst':'vinster'} · ${x.matches} ${x.matches===1?'match':'matcher'}`+(topGame==='bingo'&&x.extra?` · 🪙 ${x.extra}`:'')+(topGame==='idiot'?` · bäst ${x.extra} kort`:'');
+  const r=[...rows].sort((a,b)=>topGame==='crazy'?(b.extra-a.extra||b.matches-a.matches):(b.wins-a.wins||b.wins/b.matches-a.wins/a.matches||b.matches-a.matches)), myI=r.findIndex(x=>x.user_id===session.user.id);
+  const val=x=>topGame==='crazy'?`🪙 ${x.extra} · ${x.matches} ${x.matches===1?'match':'matcher'}`:`${x.wins} ${x.wins===1?'vinst':'vinster'} · ${x.matches} ${x.matches===1?'match':'matcher'}`+(topGame==='bingo'&&x.extra?` · 🪙 ${x.extra}`:'')+(topGame==='idiot'?` · bäst ${x.extra} kort`:'');
   const line=(x,i)=>`<div class="row" ${x.user_id===session.user.id?'style="background:var(--cream-dim);border-radius:14px;padding-left:8px;padding-right:8px"':''}><b style="width:26px;text-align:center">${i+1}</b><div class="av">${esc(x.avatar)}</div><div class="nm">${esc(x.username)}</div><span style="font-size:13px;color:var(--ink-soft);text-align:right">${val(x)}</span></div>`;
   root.innerHTML=`${brand}${topTabs()}<div class="panel">${r.length?r.slice(0,10).map(line).join('')+(myI>=10?`<div class="empty" style="padding:6px">···</div>${line(r[myI],myI)}`:''):`<div class="empty">Ingen har spelat klart en match ännu. Matcher mot bottar räknas inte${topGame==='idiot'?'':''}.</div>`}</div>
   ${myI<0&&r.length?`<p class="empty">Du syns här när du har spelat klart en match.</p>`:''}`;
@@ -1310,7 +1314,7 @@ setInterval(()=>{
 /* ---------- IDIOTEN (patiens) ---------- */
 let idg=null, idStats=null, idLoaded=false, idBusy=false, idRules=false;
 const SAYW={1:'Ess',2:'Tvåa',3:'Trea',4:'Fyra'};
-function gameTabs(){return `<div class="tabs" id="gs">${[['trumf','Trumf'],['poker',"Hold'em"],['uno','UNO'],['bingo','Bingo'],['idiot','Idioten']].map(([k,n])=>`<button data-g="${k}" class="${gameSel===k?'on':''}">${n}</button>`).join('')}</div>`}
+function gameTabs(){return `<div class="tabs" id="gs">${[['trumf','Trumf'],['poker',"Hold'em"],['uno','UNO'],['bingo','Bingo'],['crazy','Crazy'],['idiot','Idioten']].map(([k,n])=>`<button data-g="${k}" class="${gameSel===k?'on':''}">${n}</button>`).join('')}</div>`}
 function bindTabs(){root.querySelectorAll('#gs [data-g]').forEach(b=>b.onclick=()=>{gameSel=b.dataset.g;drawPlay()})}
 async function loadIdiot(){
   const [a,b]=await Promise.all([
@@ -1446,11 +1450,11 @@ async function loadBingo(){
   const {data:g}=await db.from('bingo_games').select('*').eq('table_id',curTable.id).maybeSingle();
   if(!g){bg=null;return}
   const [pl,cd,w]=await Promise.all([
-    db.from('bingo_players').select('user_id,cards,bought,profiles(username,avatar,is_bot)').eq('game_id',g.id),
-    db.from('bingo_cards').select('id,nums').eq('game_id',g.id).eq('user_id',session.user.id).order('id'),
+    db.from('bingo_players').select('user_id,cards,bought,won,profiles(username,avatar,is_bot)').eq('game_id',g.id),
+    db.from('bingo_cards').select('id,nums,paid_lines,full_paid').eq('game_id',g.id).eq('user_id',session.user.id).order('id'),
     db.from('bingo_wallets').select('balance').eq('user_id',session.user.id).maybeSingle()]);
   bg=g; bgp=pl.data||[]; bgCards=cd.data||[];
-  bgProg={}; if(g.status==='drawing'){const pr=await db.rpc('bingo_progress',{p_game:g.id}); (pr.data||[]).forEach(x=>{bgProg[x.user_id]=Math.max(bgProg[x.user_id]||0,x.best)})}
+  bgProg={}; if(g.status==='drawing'&&g.mode!=='crazy'){const pr=await db.rpc('bingo_progress',{p_game:g.id}); (pr.data||[]).forEach(x=>{bgProg[x.user_id]=Math.max(bgProg[x.user_id]||0,x.best)})}
   if(w.data) bgWallet=w.data.balance; else { const r=await db.rpc('bingo_wallet'); bgWallet=r.data }
 }
 function watchBingo(){
@@ -1469,7 +1473,10 @@ function watchBingo(){
   bgTick=setInterval(tickBingo,300);
 }
 let bgLastTick=0,bgLastEvt=0,bgAnimBall='',bgProg={},bgHotKey='';
-function bgHotOk(){return !bg.next_draw_at||(new Date(bg.next_draw_at)-Date.now())<=3000}
+const bgIv=()=>bg&&bg.mode==='crazy'?3000:6000;
+function bgHotOk(){return !bg.next_draw_at||(new Date(bg.next_draw_at)-Date.now())<=bgIv()/2}
+function bgCountLines(nums,set){const L=[[0,1,2,3,4],[5,6,7,8,9],[10,11,12,13,14],[15,16,17,18,19],[20,21,22,23,24],[0,5,10,15,20],[1,6,11,16,21],[2,7,12,17,22],[3,8,13,18,23],[4,9,14,19,24],[0,6,12,18,24],[4,8,12,16,20]];return L.filter(l=>l.every(i=>nums[i]===0||set.has(nums[i]))).length}
+function bgFull(nums,set){return nums.every(n=>n===0||set.has(n))}
 function tickBingo(){
   if(!bg||page!=='play') return;
   const now=Date.now();
@@ -1479,27 +1486,35 @@ function tickBingo(){
     if(left<=0&&now-bgLastTick>1500){bgLastTick=now;setTimeout(async()=>{const t0=Date.now();await db.rpc('bingo_tick',{p_game:bg.id});await new Promise(r=>setTimeout(r,700));if(bgLastEvt<t0){await loadBingo();if(page==='play')drawPlay()}},Math.random()*400)}
   } else if(bg.status==='drawing'&&bg.next_draw_at){
     const ms=new Date(bg.next_draw_at)-now;
-    const bar=document.getElementById('bgbar'); if(bar) bar.style.width=Math.max(0,Math.min(100,100-ms/60))+'%';
-    if(ms<=3000&&bgHotKey!==bg.next_draw_at){bgHotKey=bg.next_draw_at;if(bgCards.length&&!bgAuto)drawPlay()}
+    const bar=document.getElementById('bgbar'); if(bar) bar.style.width=Math.max(0,Math.min(100,100-ms/(bgIv()/100)))+'%';
+    const lf=document.getElementById('bgleft'); if(lf){const secs=Math.max(0,Math.ceil(((60-bg.drawn.length)*3000+Math.max(0,ms))/1000));lf.textContent='⏱ '+Math.floor(secs/60)+':'+String(secs%60).padStart(2,'0')}
+    if(ms<=bgIv()/2&&bgHotKey!==bg.next_draw_at){bgHotKey=bg.next_draw_at;if(bgCards.length&&!bgAuto)drawPlay()}
     if(ms<=0&&now-bgLastTick>1500){bgLastTick=now;setTimeout(async()=>{const t0=Date.now();await db.rpc('bingo_tick',{p_game:bg.id});await new Promise(r=>setTimeout(r,700));if(bgLastEvt<t0){await loadBingo();if(page==='play')drawPlay()}},Math.random()*500)}
   }
 }
 function bgCardHtml(c,solo){
   const set=bgAuto?new Set(bg.drawn):bgSet(c), dr=new Set(bg.drawn);
-  const line=bgLine(c.nums,bgAuto?set:new Set([...set].filter(n=>dr.has(n))));
+  const msk=bgAuto?set:new Set([...set].filter(n=>dr.has(n))), crazy=bg.mode==='crazy';
+  const line=crazy?bgCountLines(c.nums,msk)>0:bgLine(c.nums,msk);
+  let btn='';
+  if(bg.status==='drawing'){
+    if(crazy){const n=bgCountLines(c.nums,msk)-(c.paid_lines||0), fl=bgFull(c.nums,msk)&&!c.full_paid;
+      if(n>0||fl) btn=`<button class="btn bbingo" data-cclaim="${c.id}">${fl?'FULL BRICKA!':'BINGO!'}${n>0?` +${n} ${n>1?'rader':'rad'}`:''}</button>`}
+    else if(line) btn=`<button class="btn bbingo" data-claim="${c.id}">BINGO!</button>`;
+  }
   const cells=c.nums.map((n,i)=>{
     if(n===0) return `<div class="bc free">★</div>`;
     const on=set.has(n), hot=!on&&dr.has(n)&&!(n===bg.last_ball&&!bgHotOk());
     return `<button class="bc ${on?'on':''} ${hot?'hot':''}" data-card="${c.id}" data-n="${n}" ${bgAuto?'disabled':''} aria-label="${bgLetter(n)} ${n}">${n}</button>`;
   }).join('');
-  return `<div class="bcard ${solo?'solo':''} ${line?'line':''}"><div class="bhead">${BL.map(l=>`<span>${l}</span>`).join('')}</div><div class="bgrid">${cells}</div>${line&&bg.status==='drawing'?`<button class="btn bbingo" data-claim="${c.id}">BINGO!</button>`:''}</div>`;
+  return `<div class="bcard ${solo?'solo':''} ${line?'line':''}"><div class="bhead">${BL.map(l=>`<span>${l}</span>`).join('')}</div><div class="bgrid">${cells}</div>${btn}</div>`;
 }
 function drawBingo(){
   if(!bg){root.innerHTML=`${brand}<p class="empty">Laddar matchen…</p>`;loadBingo().then(()=>{watchBingo();drawPlay()});return}
   const g=bg, me=bgMe();
   if(!me){root.innerHTML=`${brand}<p class="empty">Du är inte med i den här matchen.</p>`;return}
   if(g.status==='finished') return drawBingoFinal();
-  const top=g.has_bots?`<div class="bgtop"><span class="bgpill">Gratis övning</span></div>`:`<div class="bgtop"><span class="bgpill">🪙 ${bgWallet??'–'}</span><span class="bgpill gold">Pott 🪙 ${g.pot}</span></div>`;
+  const top=g.mode==='crazy'?`<div class="bgtop"><span class="bgpill">${g.has_bots?'Gratis övning':'🪙 '+(bgWallet??'–')}</span><span class="bgpill gold" id="bgleft">${g.status==='buying'?'Pris 🪙 '+g.price:'⏱ 3:00'}</span></div>`:g.has_bots?`<div class="bgtop"><span class="bgpill">Gratis övning</span></div>`:`<div class="bgtop"><span class="bgpill">🪙 ${bgWallet??'–'}</span><span class="bgpill gold">Pott 🪙 ${g.pot}</span></div>`;
   let mid='';
   if(g.status==='buying'){
     const doneN=bgp.filter(p=>p.bought).length;
@@ -1514,11 +1529,11 @@ function drawBingo(){
     mid=`<div class="bgball ${last?'b'+bgLetter(last):''} ${(last&&bgAnimBall!==g.id+'-'+last)?'anim':''}" key="${last}">${last?`<small>${bgLetter(last)}</small><b>${last}</b>`:'<b>…</b>'}</div>
       <div class="bgprev">${prev.map(n=>`<span class="pb b${bgLetter(n)}">${bgLetter(n)}${n}</span>`).join('')}</div>
       <div class="timer" style="margin:12px 0"><div id="bgbar" style="height:100%;background:var(--gold)"></div></div>
-      <p class="idtxt" style="text-align:center;margin:0 0 10px">${g.drawn.length} av 75 tal</p>`;
+      <p class="idtxt" style="text-align:center;margin:0 0 10px">${g.drawn.length} av ${g.mode==='crazy'?60:75} ${g.mode==='crazy'?'kulor':'tal'}</p>`;
   }
   const solo=bgCards.length===1;
   const cards=bgCards.length?`<div class="bcards ${solo?'one':''}">${bgCards.map(c=>bgCardHtml(c,solo)).join('')}</div>`:(g.status==='drawing'?'<p class="empty">Du tittar på den här omgången.</p>':'');
-  const oth=bgp.filter(p=>p.user_id!==me.user_id).map(p=>{const pr=p.profiles||{},b=bgProg[p.user_id]||0;return `<div class="bgo2"><span>${esc(pr.avatar||'')} <b>${esc(pr.username||'')}</b> · ${p.cards} ${p.cards===1?'bricka':'brickor'}</span>${g.status==='drawing'&&p.cards?`<span class="dots" aria-label="${b} av 5 i rad">${[1,2,3,4,5].map(i=>`<i class="${i<=b?'on':''}"></i>`).join('')}</span>`:''}</div>`}).join('');
+  const oth=bgp.filter(p=>p.user_id!==me.user_id).map(p=>{const pr=p.profiles||{},b=bgProg[p.user_id]||0;return `<div class="bgo2"><span>${esc(pr.avatar||'')} <b>${esc(pr.username||'')}</b> · ${p.cards} ${p.cards===1?'bricka':'brickor'}${g.mode==='crazy'&&p.won>0?' · '+(g.has_bots?p.won+' p':'🪙 '+p.won):''}</span>${g.mode!=='crazy'&&g.status==='drawing'&&p.cards?`<span class="dots" aria-label="${b} av 5 i rad">${[1,2,3,4,5].map(i=>`<i class="${i<=b?'on':''}"></i>`).join('')}</span>`:''}</div>`}).join('');
   root.innerHTML=`${brand}${top}${mid}${g.status==='drawing'?`<div class="bgopts"><label class="chk"><input type="checkbox" id="bauto" ${bgAuto?'checked':''}> Markera automatiskt</label><button class="btn sm ghost" id="bcall">${bgCalled?'Dölj':'Visa'} utropade tal</button></div>`:''}
     ${bgCalled&&g.status==='drawing'?`<div class="bcalled">${BL.map((l,ci)=>`<div><b>${l}</b>${Array.from({length:15},(_,k)=>ci*15+k+1).map(n=>`<span class="${g.drawn.includes(n)?'d':''}">${n}</span>`).join('')}</div>`).join('')}</div>`:''}
     ${cards}<div class="bgothers">${oth}</div>
@@ -1533,11 +1548,30 @@ function drawBingo(){
   root.querySelectorAll('.bc.on:not([disabled])').forEach(b=>b.onclick=()=>{const c=bgCards.find(x=>x.id==b.dataset.card);if(c){bgSet(c).delete(+b.dataset.n);drawPlay()}});
   const claim=async id=>{if(bgClaimed[id])return;bgClaimed[id]=1;const {error}=await db.rpc('bingo_claim',{p_game:g.id,p_card:id});await loadBingo();await loadMyTable();drawPlay()};
   root.querySelectorAll('[data-claim]').forEach(b=>b.onclick=()=>claim(+b.dataset.claim));
+  root.querySelectorAll('[data-cclaim]').forEach(b=>b.onclick=async()=>{
+    b.disabled=true;
+    const {data,error}=await db.rpc('crazy_claim',{p_game:g.id,p_card:+b.dataset.cclaim});
+    if(!error&&data){const unit=g.has_bots?'poäng':'🪙';const m=(data.full?'🎉 FULL BRICKA! ':'')+(data.lines>0?'+'+data.lines+(data.lines>1?' rader':' rad')+' · ':'')+'+'+(g.has_bots?data.coins+' poäng':'🪙 '+data.coins);const t=el('div',{class:'reminder-toast'},m);document.body.appendChild(t);setTimeout(()=>t.remove(),2600)}
+    await loadBingo();await loadWallet();drawPlay();
+  });
   if(g.status==='drawing'&&bgAuto){const hit=bgCards.find(c=>bgLine(c.nums,new Set(g.drawn)));if(hit) claim(hit.id)}
   bgAnimBall=g.id+'-'+g.last_ball;
   tickBingo();
 }
+function drawCrazyFinal(){
+  const g=bg, rows=[...bgp].sort((a,b)=>(b.won||0)-(a.won||0)), known=new Set([...friends,...incoming,...outgoing].map(x=>x.id));
+  const unit=x=>g.has_bots?x+' poäng':'🪙 '+x;
+  root.innerHTML=`${brand}<div class="panel me"><div style="font-size:54px">🎰</div><h2>Crazy Bingo slut!</h2>
+    ${g.has_bots?'<p class="idtxt">Gratis övning – inga mynt vanns.</p>':`<p class="idtxt">Du har nu 🪙 ${bgWallet??'–'}.</p>`}
+    <div class="sect">${rows.map((p,i)=>`<div class="row"><div class="av">${esc((p.profiles||{}).avatar||'🎴')}</div><div class="nm">${i+1}. ${esc((p.profiles||{}).username||'')}<small>${p.cards} ${p.cards===1?'bricka':'brickor'} · ${unit(p.won||0)}</small></div>
+    ${p.user_id!==session.user.id&&!known.has(p.user_id)&&!(p.profiles||{}).is_bot?`<button class="btn sm" data-addf="${p.user_id}">+ Lägg till vän</button>`:''}</div>`).join('')}</div>
+    <p class="idtxt">Spelmynt är bara på låtsas, inga riktiga pengar.</p>
+    <button class="btn" id="done" style="margin-top:12px">Klar</button></div>`;
+  root.querySelectorAll('[data-addf]').forEach(b=>b.onclick=async()=>{b.disabled=true;await db.from('friendships').insert({requester_id:session.user.id,addressee_id:b.dataset.addf});await loadFriends();drawCrazyFinal()});
+  document.getElementById('done').onclick=()=>{dismissTable(curTable.id);stopGameChan();stopTableChan();curTable=null;bg=null;bgMarks={};bgClaimed={};playView='menu';loadWallet().then(()=>drawPlay());drawPlay()};
+}
 function drawBingoFinal(){
+  if(bg.mode==='crazy') return drawCrazyFinal();
   const g=bg, w=g.winner_id?bgp.find(p=>p.user_id===g.winner_id):null, mine=g.winner_id===session.user.id;
   const known=new Set([...friends,...incoming,...outgoing].map(x=>x.id));
   root.innerHTML=`${brand}<div class="panel me"><div style="font-size:54px">${w?(mine?'🎉':'🏆'):'🏁'}</div><h2>${w?(mine?'BINGO! Du vann!':esc(((w.profiles||{}).username||'').toUpperCase())+' fick BINGO!'):'Matchen avslutades'}</h2>
