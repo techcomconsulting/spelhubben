@@ -452,6 +452,25 @@ function startPresence(){
     if(page==='friends'||page==='home') draw();
   }).subscribe(async st=>{ if(st==='SUBSCRIBED') await presence.track({at:Date.now()}) });
 }
+const NEWS_KEY='news_coins_v1';
+function showNews(){
+  try{if(localStorage.getItem(NEWS_KEY))return}catch(e){}
+  if(document.getElementById('newsov')) return;
+  const o=el('div',{class:'overlay center',id:'newsov'});
+  o.innerHTML=`<div class="ovlbox" style="max-width:360px;text-align:left"><div style="font-size:40px;text-align:center">🪙</div><h3 style="text-align:center;margin:4px 0 12px">Nytt: mynt i Spelhubben!</h3>
+  <p class="idtxt" style="text-align:left;margin:0 0 6px">Alla spel använder nu samma mynt. Du startar med 100.</p>
+  <ul style="margin:0 0 12px;padding-left:20px;font-size:15px;line-height:1.55">
+    <li>Har du färre än 50 mynt fylls det på till 50 varje dag.</li>
+    <li><b>Trumf:</b> välj en insats. 1:an får 80 % av potten, 2:an 20 %.</li>
+    <li><b>Hold'em:</b> du väljer hur många mynt du tar med. Det du har kvar får du tillbaka.</li>
+    <li><b>Bingo:</b> välj pris per bricka. Bingo genom stjärnan ⭐ dubblar vinsten.</li>
+    <li><b>🎰 Crazy Bingo:</b> nytt spel! Många bingon och ett vinsthjul.</li>
+    <li><b>Idioten:</b> klarar du hela leken får du 20 mynt.</li>
+    <li>Övning mot bottar är gratis, men ger inga mynt.</li></ul>
+  <button class="btn" id="newsok">Kör!</button></div>`;
+  document.body.appendChild(o);
+  document.getElementById('newsok').onclick=()=>{try{localStorage.setItem(NEWS_KEY,'1')}catch(e){}o.remove()};
+}
 async function boot(sess){
   session=sess;
   const {data:prof,error}=await db.from('profiles').select('*').eq('id',sess.user.id).single();
@@ -469,6 +488,7 @@ async function boot(sess){
     if(!curTable){ await doJoin(inv) } else setNotice('err',ERR.already_at_table);
   }
   draw();
+  showNews();
 }
 
 /* ---------- SHELL ---------- */
