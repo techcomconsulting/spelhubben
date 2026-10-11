@@ -514,18 +514,19 @@
 
   .cvsurf{background:url(assets/landskap_dag.webp) center bottom/cover!important}.cvsurf.night{background:url(assets/landskap_natt.webp) center bottom/cover!important}
   .cvsurf .sun,.cvsurf .cl,.cvground{display:none!important}.cvhatch{bottom:0!important}
+  .cvsurf .cvw .mon{height:40px;width:auto;display:block}
   .ri{width:20px;height:20px;vertical-align:-4px}
   .fsvault{display:block;background:#050607}
   .fsshaft{width:30px;background:url(assets/hisschakt.webp) repeat-y center top/30px auto!important;border:none!important;box-shadow:none!important}
   .fscab{width:26px!important;height:78px!important;left:2px!important;background:url(assets/hiss.webp) center/100% 100% no-repeat!important;border:none!important;font-size:0}
-  .fsgrid{margin-left:30px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px;padding:4px}
-  .fsroom{height:auto!important;aspect-ratio:600/349;background-color:#000;background-size:100% 100%;background-repeat:no-repeat;border:none!important;border-radius:5px;box-shadow:0 2px 6px rgba(0,0,0,.5)!important}
+  .fsgrid{margin-left:30px;display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:4px;padding:4px}
+  .fsroom{height:auto!important;aspect-ratio:640/291;background-color:#000;background-size:106% 112%;background-position:center;background-repeat:no-repeat;border:none!important;border-radius:5px;box-shadow:0 2px 6px rgba(0,0,0,.5)!important}
   .fsroom::before,.fsroom .rf,.fsroom .rw::after{display:none!important}
   .fsroom .rw{background-image:none!important;mix-blend-mode:color;opacity:.6}
   .fsroom .rh{background:rgba(0,0,0,.55);height:16px;border-radius:5px 5px 0 0}
   .fsroom .stn{bottom:4%}.fsroom .cvw{bottom:4%}
   .fsroom .need,.fsroom .okc{top:18px}
-  .fsempty{height:auto!important;aspect-ratio:600/349;border:none!important;border-radius:5px;background-color:#000;background-size:100% 100%;background-repeat:no-repeat;display:flex;align-items:flex-end;justify-content:center;padding:0 0 8px;cursor:pointer}
+  .fsempty{height:auto!important;aspect-ratio:640/291;border:none!important;border-radius:5px;background-color:#000;background-size:106% 112%;background-position:center;background-repeat:no-repeat;display:flex;align-items:flex-end;justify-content:center;padding:0 0 8px;cursor:pointer}
   .fsempty span{background:rgba(0,0,0,.6);color:#ffe9b8;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:800}
   .rsv.spr{display:block;width:auto;filter:drop-shadow(0 2px 2px rgba(0,0,0,.6))}
   .cvw .rsv.spr{animation:sprbob .45s ease-in-out infinite}.rsv.spr.work{animation:sprwork 1s ease-in-out infinite;transform-origin:50% 100%}
@@ -723,7 +724,7 @@ function resSvgOld(l,w,cls){
   l=l||{};const sk=SKN[(l.skin||0)%6],hc=HCL[(l.hc||0)%6],sh=SHC[(l.shirt||0)%8],hs=(l.hair||0)%5;
   const hair=['',`<path d="M6 8.5 Q12 .5 18 8.5 Z" fill="${hc}"/>`,`<path d="M5.5 10 Q12 -1 18.5 10 L18.5 16 L16.5 16 L16.5 9.5 L7.5 9.5 L7.5 16 L5.5 16 Z" fill="${hc}"/>`,`<path d="M6 9 L7.5 2 L10.5 6.5 L12.5 1 L14.5 6.5 L17.5 2.5 L18 9 Z" fill="${hc}"/>`,`<path d="M5.5 9 Q12 -2 18.5 9 Z" fill="#d4a017"/><rect x="5" y="8" width="14" height="2" rx="1" fill="#a67c00"/>`][hs];
   return `<svg class="rsv ${cls||''}" width="${w}" height="${Math.round(w*40/24)}" viewBox="0 0 24 40" aria-hidden="true"><g class="a2"><rect x="3" y="17" width="4" height="12" rx="2" fill="#2b5fa8" stroke="#16335e" stroke-width=".6"/></g><g class="l1"><rect x="7" y="28" width="4.5" height="11" rx="2" fill="#244a86"/></g><g class="l2"><rect x="12.5" y="28" width="4.5" height="11" rx="2" fill="#1e3d70"/></g><rect x="6" y="16" width="12" height="14" rx="4" fill="#2b5fa8" stroke="#16335e" stroke-width=".6"/><path d="M12 16v14" stroke="#f2c230" stroke-width="1.4"/><rect x="6" y="22" width="12" height="2.2" fill="#f2c230"/><rect x="3" y="21" width="4" height="2.4" fill="${sh}"/><circle cx="12" cy="9.5" r="6" fill="${sk}"/>${hair}<circle cx="10" cy="10" r=".9" fill="#222"/><circle cx="14" cy="10" r=".9" fill="#222"/><path d="M10.2 12.6 Q12 14 13.8 12.6" stroke="#7a3b1e" stroke-width=".8" fill="none"/><g class="a1"><rect x="17" y="17" width="4" height="12" rx="2" fill="#2b5fa8" stroke="#16335e" stroke-width=".6"/></g></svg>`}
-function resSvg(l,w,cls){return `<img class="rsv spr ${cls||''}" src="assets/${cls==='sit'?'man_sjuk_sitt':'man_stall'}.webp" style="height:${Math.round(w*40/24)}px" alt="">`}
+function resSvg(l,w,cls){return `<img class="rsv spr ${cls||''}" src="assets/${cls==='sit'?'man_sjuk_sitt':'char_'+(((l&&l.skin)||0)%3+1)}.webp" style="height:${Math.round(w*40/24)}px" alt="">`}
 function roomFx(k,L,f){
   const p=Math.round((f==null?1:f)*100)+'%';
   return ({power:`+${24*L} ⚡/tim`,canteen:`+${16*L} 🍖/tim`,water:`+${16*L} 💧/tim`,workshop:`+${8*L} 🪨 och +${3*L} ⚙️ /tim`,hospital:`+${(1.5*L).toFixed(1)} 💊/tim · läker`,lab:`+${2*L} 🔬/tim`,defense:`+${12*L} försvar`,control:`+${4*L} % produktion`,comms:`överlevare var ${(3/(1+0.25*L)).toFixed(1)}:e timme`,storage:`+${50*L} % lager`,lounge:`+${5*L} humör`,dorm:`plats åt ${2*L}`,training:`3× erfarenhet`}[k]||'')}
@@ -757,12 +758,12 @@ function cvRoomHtml(r,f,sl,pw){
   if(!r||r.kind==='ruin')return `<button class="fsempty" data-slot="${f},${sl}" ${rimg(r?'ruin':'bygg_har')}><span>${r?'Ruin · bygg om':'＋ Bygg'}</span></button>`;
   const k=CK[r.kind]||CK.lounge,mine=cave.residents.filter(x=>x.room_id===r.id&&x.status==='ok');
   let ppl='';
-  if(r.slots>0){ppl=mine.map((x,i)=>`<span class="stn" style="left:${16+i*38}%">${resSvg(x.look,24,'work')}</span>`).join('')}
+  if(r.slots>0){ppl=mine.map((x,i)=>`<span class="stn" style="left:${16+i*38}%">${resSvg(x.look,34,'work')}</span>`).join('')}
   else{
     const dorms=cave.rooms.filter(q=>q.kind==='dorm'),home=dorms.length?dorms:cave.rooms.filter(q=>q.kind==='lounge');
     const idle=cave.residents.filter(x=>!x.room_id||x.status!=='ok');
     const my=idle.filter((x,i)=>home.length&&home[i%home.length].id===r.id);
-    ppl=my.map((x,i)=>{const d=11+(x.id*3)%7;return x.status==='injured'?`<span class="stn" style="left:${22+i*24}%">${resSvg(x.look,24,'sit')}<em class="bdg">🩹</em></span>`:`<span class="cvw" style="--d:${d}s;--dl:-${(x.id*2.7)%d}s"><i>${resSvg(x.look,24,'')}</i></span>`}).join('')}
+    ppl=my.map((x,i)=>{const d=11+(x.id*3)%7;return x.status==='injured'?`<span class="stn" style="left:${22+i*24}%">${resSvg(x.look,34,'sit')}<em class="bdg">🩹</em></span>`:`<span class="cvw" style="--d:${d}s;--dl:-${(x.id*2.7)%d}s"><i>${resSvg(x.look,34,'')}</i></span>`}).join('')}
   const warn=r.slots>0&&mine.length<r.slots?`<span class="need">${mine.length}/${r.slots}</span>`:(r.slots>0?`<span class="okc">${mine.length}/${r.slots}</span>`:'');
   const tint=CC[r.color]?`<div class="rw" style="background-color:${CC[r.color]}"></div>`:'<div class="rw"></div>';
   return `<div class="fsroom ${r.color==='night'?'dark':''} ${pw?'':'off'}" role="button" tabindex="0" data-room="${r.id}" aria-label="${esc(r.name)}" ${rimg(RFILE[r.kind]||'lager')}>${tint}<div class="rh"><span>${esc(r.name)}</span><span style="color:#ffd23f">${'★'.repeat(r.level)}</span></div>${warn}${r.decor?`<span class="rd">${CD[r.decor]?CD[r.decor][0]:''}</span>`:''}${roomFxIcon(r,pw)}${ppl}</div>`}
@@ -794,7 +795,7 @@ function drawCave(){
   const s=cave.state,pw=projRes('power')>0,floors=[];
   for(let f=1;f<=s.depth;f++)for(let sl=0;sl<3;sl++)floors.push(cvRoomHtml(cave.rooms.find(x=>x.floor===f&&x.slot===sl),f,sl,pw));
   const hr=new Date().getHours(),night=hr>=20||hr<6,defRooms=cave.rooms.filter(r=>r.kind==='defense').length,ok=s.defense>=s.next_str;
-  const EN=['🧟','🐺','🧟‍♀️','🐻','🐗','🐍','🦂','🕷️','👹'],pool=EN.slice(0,Math.min(EN.length,3+s.attack_no)),ne=Math.min(7,2+Math.floor(s.attack_no/2)+(night?1:0));
+  const EN=[1,2,3,4,5,6].map(n=>`<img class="mon" src="assets/monster_${n}.webp" alt="">`),pool=EN.slice(0,Math.min(EN.length,3+s.attack_no)),ne=Math.min(7,2+Math.floor(s.attack_no/2)+(night?1:0));
   let surf='';for(let i=0;i<ne;i++){const d=13+(i*5)%11;surf+=`<span class="cvw en" style="--d:${d}s;--dl:-${(i*3.7)%d}s"><i>${pool[(i*2+s.attack_no)%pool.length]}</i></span>`}
   for(let i=0;i<Math.min(3,defRooms);i++)surf+=`<span class="cvguard" style="left:${44+i*6}%">💂</span>`;
   if(s.mission_kind)surf+=`<span class="cvw hero" style="--d:40s;--dl:-8s;--mx:90%;font-size:24px"><i>👷</i></span>`;
