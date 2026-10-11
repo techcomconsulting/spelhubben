@@ -491,6 +491,26 @@
   .fsfloor{border-bottom:5px solid #7a858f;background:#1b232a}
   .fsvault{background:#12161a;border-color:#59626a}
   .cvhatch{bottom:14px}
+
+  .cvsurf{background:linear-gradient(#aebfc4,#e6dcbd 72%)!important;border-radius:20px 20px 0 0}.cvsurf.night{background:linear-gradient(#0e1736,#3b3f7a 80%)!important}
+  .cvmtn{position:absolute;left:0;right:0;bottom:30px;width:100%;height:92px}
+  .cvground{height:36px;background:linear-gradient(#7a6a50 0 6px,#3a2e22 6px 14px,#15110d 14px)!important}
+  .fsvault{background:#050607;border:3px solid #050607;border-top:none}
+  .fsfloor{gap:4px;padding:0 4px;background:#050607;border-bottom:8px solid #050607;margin-left:30px}
+  .fsroom{height:132px;border:3px solid #050607;border-radius:3px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+  .fsempty{height:132px;border-radius:3px}
+  .fsroom .rw{background-image:repeating-linear-gradient(90deg,transparent 0 38px,rgba(0,0,0,.18) 38px 40px)!important}
+  .fsroom .rw::after{content:'';position:absolute;inset:0;background:linear-gradient(rgba(0,0,0,.65),rgba(0,0,0,.2) 55%,rgba(0,0,0,.32))}
+  .fsroom::before{content:'';position:absolute;top:17px;left:0;right:0;height:5px;background:linear-gradient(#7a6540,#3a2f1e);z-index:1;box-shadow:0 3px 0 rgba(0,0,0,.35)}
+  .fsroom .lamp{top:22px;width:22px;height:4px;margin-left:-11px;box-shadow:0 0 12px 5px rgba(255,240,170,.55)}
+  .fsroom .lamp::after{content:'';position:absolute;top:4px;left:50%;transform:translateX(-50%);border-left:26px solid transparent;border-right:26px solid transparent;border-top:70px solid rgba(255,244,190,.16)}
+  .rart{height:86px;bottom:16px}.fsroom .rf{height:16px}
+  .fsroom .stn{bottom:15px}.fsroom .cvw{bottom:15px}
+  .rsv{filter:drop-shadow(0 2px 1px rgba(0,0,0,.55))}
+  .fsshaft{width:30px;background:repeating-linear-gradient(#3a1a10 0 8px,#8a3c1a 8px 10px)!important;border-right:3px solid #050607!important;box-shadow:inset 6px 0 10px rgba(255,120,40,.35),inset -6px 0 10px rgba(255,120,40,.35)}
+  .fscab{background:linear-gradient(#e0743a,#a8431a)!important;border-color:#2a0f06!important}
+  .fshud{background:#0b0f10;border:2px solid #2c3a3d}
+  .fsroom .rh{background:rgba(0,0,0,.78);top:0}
   @media (prefers-reduced-motion:reduce){.rsv *,.fsg.low,.fsroom .need{animation:none!important}}
 </style>
 </head>
@@ -644,19 +664,19 @@ async function boot(sess){
 /* ---------- GROTTAN ---------- */
 let cave=null,caveT=null,caveSkew=0,caveFlag='',caveN=0,caveTab='res',caveFetchAt=0,caveSig='',caveFirst=true;
 const CK={
-  power:{e:'⚡',n:'Kraftverk',d:'Producerar el. Alla andra rum drar el.',s:30,m:8,skill:'s_end',props:['⚡','🔋'],tint:'#f6e7a8'},
-  canteen:{e:'🍲',n:'Matsal',d:'Producerar mat åt alla.',s:25,m:3,skill:'s_agi',props:['🍲','🥕'],tint:'#f7d9b0'},
-  water:{e:'💧',n:'Vattenrening',d:'Renar vatten åt alla.',s:30,m:6,skill:'s_per',props:['🚰','💧'],tint:'#bfe3f5'},
-  dorm:{e:'🛏️',n:'Sovrum',d:'Plats åt 2 invånare per nivå. Nya överlevare söker skydd här.',s:25,m:3,skill:null,props:['🛏️','🛏️'],tint:'#d9d4f0'},
-  hospital:{e:'🏥',n:'Sjukhus',d:'Läker skadade (kostar medicin) och gör medicin.',s:40,m:10,skill:'s_int',props:['🩺','💊'],tint:'#e3f4ec'},
-  workshop:{e:'🛠️',n:'Verkstad',d:'Tillverkar byggmaterial och metall.',s:30,m:5,skill:'s_str',props:['🛠️','⚙️'],tint:'#e6d6c2'},
-  lab:{e:'🔬',n:'Laboratorium',d:'Ger forskningspoäng.',s:45,m:15,skill:'s_int',props:['🔬','🧪'],tint:'#d3e8f0'},
-  storage:{e:'📦',n:'Lager',d:'Ökar lagringsgränserna +50 % per nivå.',s:30,m:4,skill:null,props:['📦','🛢️'],tint:'#dad3c6'},
-  training:{e:'🏋️',n:'Träningsrum',d:'De som tränar här utvecklas snabbare.',s:35,m:6,skill:'s_end',props:['🏋️','🥊'],tint:'#f3d6d2'},
-  control:{e:'🖥️',n:'Kontrollrum',d:'+4 % produktion i hela basen per nivå.',s:50,m:20,skill:'s_cha',props:['🖥️','📡'],tint:'#cfdae9'},
-  defense:{e:'🛡️',n:'Försvarsrum',d:'Skyddar mot attacker.',s:40,m:10,skill:'s_per',props:['🛡️','🗡️'],tint:'#ddd2c2'},
-  comms:{e:'📻',n:'Kommunikation',d:'Fler överlevare söker sig hit.',s:40,m:12,skill:'s_cha',props:['📻','🛰️'],tint:'#dbe9d2'},
-  lounge:{e:'🛋️',n:'Vardagsrum',d:'Höjer humöret hos alla.',s:15,m:0,skill:null,props:['🛋️','📺'],tint:'#f2dee8'}
+  power:{e:'⚡',n:'Kraftverk',d:'Producerar el. Alla andra rum drar el.',s:30,m:8,skill:'s_end',props:['⚡','🔋'],tint:'#c9772b'},
+  canteen:{e:'🍲',n:'Matsal',d:'Producerar mat åt alla.',s:25,m:3,skill:'s_agi',props:['🍲','🥕'],tint:'#5c9a4a'},
+  water:{e:'💧',n:'Vattenrening',d:'Renar vatten åt alla.',s:30,m:6,skill:'s_per',props:['🚰','💧'],tint:'#3c86b8'},
+  dorm:{e:'🛏️',n:'Sovrum',d:'Plats åt 2 invånare per nivå. Nya överlevare söker skydd här.',s:25,m:3,skill:null,props:['🛏️','🛏️'],tint:'#8a5a9a'},
+  hospital:{e:'🏥',n:'Sjukhus',d:'Läker skadade (kostar medicin) och gör medicin.',s:40,m:10,skill:'s_int',props:['🩺','💊'],tint:'#4fa8a0'},
+  workshop:{e:'🛠️',n:'Verkstad',d:'Tillverkar byggmaterial och metall.',s:30,m:5,skill:'s_str',props:['🛠️','⚙️'],tint:'#a8763d'},
+  lab:{e:'🔬',n:'Laboratorium',d:'Ger forskningspoäng.',s:45,m:15,skill:'s_int',props:['🔬','🧪'],tint:'#4a7fa8'},
+  storage:{e:'📦',n:'Lager',d:'Ökar lagringsgränserna +50 % per nivå.',s:30,m:4,skill:null,props:['📦','🛢️'],tint:'#8a7a5a'},
+  training:{e:'🏋️',n:'Träningsrum',d:'De som tränar här utvecklas snabbare.',s:35,m:6,skill:'s_end',props:['🏋️','🥊'],tint:'#b0554a'},
+  control:{e:'🖥️',n:'Kontrollrum',d:'+4 % produktion i hela basen per nivå.',s:50,m:20,skill:'s_cha',props:['🖥️','📡'],tint:'#4a6a9a'},
+  defense:{e:'🛡️',n:'Försvarsrum',d:'Skyddar mot attacker.',s:40,m:10,skill:'s_per',props:['🛡️','🗡️'],tint:'#7a7a52'},
+  comms:{e:'📻',n:'Kommunikation',d:'Fler överlevare söker sig hit.',s:40,m:12,skill:'s_cha',props:['📻','🛰️'],tint:'#5a9a78'},
+  lounge:{e:'🛋️',n:'Vardagsrum',d:'Höjer humöret hos alla.',s:15,m:0,skill:null,props:['🛋️','📺'],tint:'#b05a7a'}
 };
 const SKILLS=[['s_str','Styrka','💪'],['s_per','Uppfattning','👁️'],['s_end','Uthållighet','🫀'],['s_int','Intelligens','🧠'],['s_agi','Smidighet','🤸'],['s_cha','Karisma','💬']];
 const CD={plant:['🪴','Växt'],lamp:['🕯️','Ljus'],rug:['🧶','Matta'],painting:['🖼️','Tavla'],statue:['🗿','Staty'],fish:['🐠','Fisk'],trophy:['🏆','Pokal'],orb:['🔮','Kristallkula'],crown:['👑','Krona']};
@@ -699,7 +719,7 @@ function warnHtml(){
     if(v<=0)w.push(`🚨 ${n} är slut! Invånarna mår dåligt.`);else if(rt<0&&v/-rt<12)w.push(`⚠️ ${n} tar slut om ${fmtH(v/-rt)}.`)});
   const inj=cave.residents.filter(r=>r.status==='injured').length;if(inj)w.push(`🩹 ${inj} skadad${inj>1?'e':''} – bygg och bemanna ett Sjukhus.`);
   const idle=cave.residents.filter(r=>!r.room_id&&r.status==='ok').length;if(idle)w.push(`👤 ${idle} invånare saknar jobb. Tryck på ett rum och sätt dit dem.`);
-  return w.map(x=>`<div class="fswarn">${x}</div>`).join('')
+  return w.slice(0,2).map(x=>`<div class="fswarn">${x}</div>`).join('')
 }
 function jobName(r){const rm=r.room_id&&cave.rooms.find(x=>x.id===r.room_id);return rm?(CK[rm.kind]?CK[rm.kind].n:rm.name):'Ledig'}
 function resListHtml(){
@@ -730,14 +750,14 @@ function cvRoomHtml(r,f,sl,pw){
   if(!r||r.kind==='ruin')return `<button class="fsempty" data-slot="${f},${sl}"><span style="font-size:24px">${r?'🧱':'＋'}</span>${r?'Ruin · bygg om':'Bygg'}</button>`;
   const k=CK[r.kind]||CK.lounge,mine=cave.residents.filter(x=>x.room_id===r.id&&x.status==='ok');
   let ppl='';
-  if(r.slots>0){ppl=mine.map((x,i)=>`<span class="stn" style="left:${14+i*42}%">${resSvg(x.look,30,'work')}</span>`).join('')}
+  if(r.slots>0){ppl=mine.map((x,i)=>`<span class="stn" style="left:${16+i*40}%">${resSvg(x.look,24,'work')}</span>`).join('')}
   else{
     const dorms=cave.rooms.filter(q=>q.kind==='dorm'),home=dorms.length?dorms:cave.rooms.filter(q=>q.kind==='lounge');
     const idle=cave.residents.filter(x=>!x.room_id||x.status!=='ok');
     const my=idle.filter((x,i)=>home.length&&home[i%home.length].id===r.id);
-    ppl=my.map((x,i)=>{const d=11+(x.id*3)%7;return x.status==='injured'?`<span class="stn" style="left:${22+i*26}%">${resSvg(x.look,30,'sit')}<em class="bdg">🩹</em></span>`:`<span class="cvw" style="--d:${d}s;--dl:-${(x.id*2.7)%d}s"><i>${resSvg(x.look,28,'')}</i></span>`}).join('')}
+    ppl=my.map((x,i)=>{const d=11+(x.id*3)%7;return x.status==='injured'?`<span class="stn" style="left:${22+i*26}%">${resSvg(x.look,24,'sit')}<em class="bdg">🩹</em></span>`:`<span class="cvw" style="--d:${d}s;--dl:-${(x.id*2.7)%d}s"><i>${resSvg(x.look,22,'')}</i></span>`}).join('')}
   const warn=r.slots>0&&mine.length<r.slots?`<span class="need">${mine.length}/${r.slots}</span>`:(r.slots>0?`<span class="okc">${mine.length}/${r.slots}</span>`:'');
-  return `<div class="fsroom ${r.color==='night'?'dark':''} ${pw?'':'off'}" role="button" tabindex="0" data-room="${r.id}" aria-label="${esc(r.name)}"><div class="rw" style="background-color:${rtint(r)}"></div><div class="rf"></div><div class="rh"><span>${esc(r.name)}</span><span style="color:#ffd23f">${'★'.repeat(r.level)}</span></div>${warn}${r.decor?`<span class="rd">${CD[r.decor]?CD[r.decor][0]:''}</span>`:''}<i class="lamp"></i>${ROOMART[r.kind]||''}${roomFxIcon(r,pw)}${ppl}</div>`}
+  return `<div class="fsroom ${r.color==='night'?'dark':''} ${pw?'':'off'}" role="button" tabindex="0" data-room="${r.id}" aria-label="${esc(r.name)}"><div class="rw" style="background-color:${rtint(r)}"></div><div class="rf"></div><div class="rh"><span>${esc(r.name)}</span><span style="color:#ffd23f">${'★'.repeat(r.level)}</span></div>${warn}${r.decor?`<span class="rd">${CD[r.decor]?CD[r.decor][0]:''}</span>`:''}<i class="lamp" style="left:28%"></i><i class="lamp" style="left:74%"></i>${ROOMART[r.kind]||''}${roomFxIcon(r,pw)}${ppl}</div>`}
 function roomFxIcon(r,pw){return pw?'':'<span class="offi">🔌</span>'}
 function tabHtml(){
   const s=cave.state;
@@ -773,7 +793,7 @@ function drawCave(){
   for(let i=0;i<Math.min(3,defRooms);i++)surf+=`<span class="cvguard" style="left:${44+i*6}%">💂</span>`;
   if(s.mission_kind)surf+=`<span class="cvw hero" style="--d:40s;--dl:-8s;--mx:90%;font-size:24px"><i>👷</i></span>`;
   const cl='<span class="cl" style="top:10px;animation-delay:-5s">☁️</span><span class="cl" style="top:36px;animation-delay:-30s;font-size:22px">☁️</span>';
-  const surfH=`<div class="cvsurf ${night?'night':''}"><span class="sun">${night?'🌙':'☀️'}</span>${cl}<div class="cvhills"></div><div class="cvground"></div><span class="cvhatch"><svg viewBox="0 0 60 40" width="84" height="56" aria-hidden="true"><path d="M2 40 Q2 8 30 8 Q58 8 58 40Z" fill="#59636d" stroke="#1d242b" stroke-width="2"/><circle cx="30" cy="30" r="14" fill="#f2c230" stroke="#6b5200" stroke-width="2"/><circle cx="30" cy="30" r="9" fill="#e3a91d"/><text x="30" y="34" text-anchor="middle" font-size="10" font-weight="900" fill="#2a2000" font-family="sans-serif">G</text><path d="M30 14v6M30 40v-6M16 30h6M44 30h-6" stroke="#6b5200" stroke-width="2.5"/></svg></span>${surf}<span class="warn">${ok?'✅ Försvaret håller':'⚠️ Försvaret är svagt!'}${s.mission_kind?' · 🧭 hjälparen är ute':''}</span></div>`;
+  const surfH=`<div class="cvsurf ${night?'night':''}"><span class="sun">${night?'🌙':'☀️'}</span>${cl}<svg class="cvmtn" viewBox="0 0 390 100" preserveAspectRatio="none" aria-hidden="true"><polygon points="0,100 0,60 50,20 85,50 130,8 190,62 240,30 300,64 350,26 390,52 390,100" fill="#8a97a0"/><polygon points="0,100 0,78 70,52 120,74 200,46 270,76 330,56 390,74 390,100" fill="#6d7a72"/><g stroke="#3b2f25" stroke-width="2.5" fill="none" stroke-linecap="round"><path d="M40 100V62M40 76l-8-8M40 70l7-9"/><path d="M335 100V58M335 74l-9-8M335 66l8-9"/></g></svg><div class="cvground"></div><span class="cvhatch"><svg viewBox="0 0 60 40" width="84" height="56" aria-hidden="true"><path d="M2 40 Q2 8 30 8 Q58 8 58 40Z" fill="#59636d" stroke="#1d242b" stroke-width="2"/><circle cx="30" cy="30" r="14" fill="#f2c230" stroke="#6b5200" stroke-width="2"/><circle cx="30" cy="30" r="9" fill="#e3a91d"/><text x="30" y="34" text-anchor="middle" font-size="10" font-weight="900" fill="#2a2000" font-family="sans-serif">G</text><path d="M30 14v6M30 40v-6M16 30h6M44 30h-6" stroke="#6b5200" stroke-width="2.5"/></svg></span>${surf}<span class="warn">${ok?'✅ Försvaret håller':'⚠️ Försvaret är svagt!'}${s.mission_kind?' · 🧭 hjälparen är ute':''}</span></div>`;
   const nx=s.depth+1,dc=[Math.round(30*Math.pow(nx,1.5)),5*nx,0];
   const T=(k,t)=>`<button role="tab" data-tab="${k}" class="${caveTab===k?'on':''}">${t}</button>`;
   root.innerHTML=`${brand}
