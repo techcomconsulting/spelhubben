@@ -529,7 +529,6 @@
   .fsempty{height:auto!important;aspect-ratio:640/291;border:none!important;border-radius:5px;background-color:#000;background-size:106% 112%;background-position:center;background-repeat:no-repeat;display:flex;align-items:flex-end;justify-content:center;padding:0 0 8px;cursor:pointer}
   .fsempty span{background:rgba(0,0,0,.6);color:#ffe9b8;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:800}
   .rsv.spr{display:block;width:auto;filter:drop-shadow(0 2px 2px rgba(0,0,0,.6))}
-  .cvw .rsv.spr{animation:sprbob .45s ease-in-out infinite}.rsv.spr.work{animation:sprwork 1s ease-in-out infinite;transform-origin:50% 100%}
   @keyframes sprbob{50%{transform:translateY(-3px) rotate(2deg)}}@keyframes sprwork{50%{transform:rotate(-4deg) translateY(-2px)}}
   .cvav .rsv.spr{height:46px!important}.cvav.big .rsv.spr{height:84px!important}
   @media (prefers-reduced-motion:reduce){.rsv.spr{animation:none!important}}
@@ -548,6 +547,12 @@
   .cvdock button{flex:1;border:none;border-radius:14px;background:#1d2a2c;color:#f4e9b5;font-family:inherit;font-size:20px;font-weight:800;padding:6px 2px;min-height:52px;cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.1}
   .cvdock button small{font-size:11px;font-weight:700}
   .cvtop .fshud{grid-template-columns:repeat(8,1fr);gap:2px}.cvtop .fsg b{font-size:13px;display:flex;align-items:center;justify-content:center;gap:2px}.cvtop .fsg .ri{width:15px;height:15px}.cvtop .fsg .rr{display:none}.cvtop .fsg .cvbar{height:4px;margin:2px 1px}
+  .anim{display:block;background-repeat:no-repeat;background-size:800% 100%;filter:drop-shadow(0 2px 2px rgba(0,0,0,.6))}
+  .anim.gang{background-image:url(assets/gang.webp);animation:gangA .8s steps(1) infinite}.anim.jobb{background-image:url(assets/jobb.webp);animation:jobbA 1s steps(1) infinite}
+  @keyframes gangA{0.0%{background-position:0.0% 0}12.5%{background-position:14.286% 0}25.0%{background-position:28.571% 0}37.5%{background-position:42.857% 0}50.0%{background-position:57.143% 0}62.5%{background-position:71.429% 0}75.0%{background-position:85.714% 0}87.5%{background-position:100.0% 0}}@keyframes jobbA{0.0%{background-position:0.0% 0}12.5%{background-position:14.286% 0}25.0%{background-position:28.571% 0}37.5%{background-position:42.857% 0}50.0%{background-position:57.143% 0}62.5%{background-position:71.429% 0}75.0%{background-position:85.714% 0}87.5%{background-position:100.0% 0}}
+  .rsv.spr.sit{opacity:.8;filter:grayscale(.5) drop-shadow(0 2px 2px rgba(0,0,0,.6))}
+  .cvsurf .cvw .mon{height:36px}
+  @media (prefers-reduced-motion:reduce){.anim{animation:none!important}}
   @media (prefers-reduced-motion:reduce){.rsv *,.fsg.low,.fsroom .need{animation:none!important}}
 </style>
 </head>
@@ -739,7 +744,8 @@ function resSvgOld(l,w,cls){
   l=l||{};const sk=SKN[(l.skin||0)%6],hc=HCL[(l.hc||0)%6],sh=SHC[(l.shirt||0)%8],hs=(l.hair||0)%5;
   const hair=['',`<path d="M6 8.5 Q12 .5 18 8.5 Z" fill="${hc}"/>`,`<path d="M5.5 10 Q12 -1 18.5 10 L18.5 16 L16.5 16 L16.5 9.5 L7.5 9.5 L7.5 16 L5.5 16 Z" fill="${hc}"/>`,`<path d="M6 9 L7.5 2 L10.5 6.5 L12.5 1 L14.5 6.5 L17.5 2.5 L18 9 Z" fill="${hc}"/>`,`<path d="M5.5 9 Q12 -2 18.5 9 Z" fill="#d4a017"/><rect x="5" y="8" width="14" height="2" rx="1" fill="#a67c00"/>`][hs];
   return `<svg class="rsv ${cls||''}" width="${w}" height="${Math.round(w*40/24)}" viewBox="0 0 24 40" aria-hidden="true"><g class="a2"><rect x="3" y="17" width="4" height="12" rx="2" fill="#2b5fa8" stroke="#16335e" stroke-width=".6"/></g><g class="l1"><rect x="7" y="28" width="4.5" height="11" rx="2" fill="#244a86"/></g><g class="l2"><rect x="12.5" y="28" width="4.5" height="11" rx="2" fill="#1e3d70"/></g><rect x="6" y="16" width="12" height="14" rx="4" fill="#2b5fa8" stroke="#16335e" stroke-width=".6"/><path d="M12 16v14" stroke="#f2c230" stroke-width="1.4"/><rect x="6" y="22" width="12" height="2.2" fill="#f2c230"/><rect x="3" y="21" width="4" height="2.4" fill="${sh}"/><circle cx="12" cy="9.5" r="6" fill="${sk}"/>${hair}<circle cx="10" cy="10" r=".9" fill="#222"/><circle cx="14" cy="10" r=".9" fill="#222"/><path d="M10.2 12.6 Q12 14 13.8 12.6" stroke="#7a3b1e" stroke-width=".8" fill="none"/><g class="a1"><rect x="17" y="17" width="4" height="12" rx="2" fill="#2b5fa8" stroke="#16335e" stroke-width=".6"/></g></svg>`}
-function resSvg(l,w,cls){return `<img class="rsv spr ${cls||''}" src="assets/${cls==='sit'?'man_sjuk_sitt':'char_'+(((l&&l.skin)||0)%3+1)}.webp" style="height:${Math.round(w*40/24)}px" alt="">`}
+function resSvg(l,w,cls){return `<img class="rsv spr ${cls||''}" src="assets/char_${((l&&l.skin)||0)%3+1}.webp" style="height:${Math.round(w*40/24)}px" alt="">`}
+function resAnim(k,h){const asp=k==='gang'?190/170:181/170;return `<span class="anim ${k}" style="width:${Math.round(h*asp)}px;height:${h}px" aria-hidden="true"></span>`}
 function roomFx(k,L,f){
   const p=Math.round((f==null?1:f)*100)+'%';
   return ({power:`+${24*L} ⚡/tim`,canteen:`+${16*L} 🍖/tim`,water:`+${16*L} 💧/tim`,workshop:`+${8*L} 🪨 och +${3*L} ⚙️ /tim`,hospital:`+${(1.5*L).toFixed(1)} 💊/tim · läker`,lab:`+${2*L} 🔬/tim`,defense:`+${12*L} försvar`,control:`+${4*L} % produktion`,comms:`överlevare var ${(3/(1+0.25*L)).toFixed(1)}:e timme`,storage:`+${50*L} % lager`,lounge:`+${5*L} humör`,dorm:`plats åt ${2*L}`,training:`3× erfarenhet`}[k]||'')}
@@ -774,12 +780,12 @@ function cvRoomHtml(r,f,sl,pw){
   if(!r||r.kind==='ruin')return `<button class="fsempty" data-slot="${f},${sl}" ${rimg(r?'ruin':'bygg_har')}><span>${r?'Ruin · bygg om':'＋ Bygg'}</span></button>`;
   const k=CK[r.kind]||CK.lounge,mine=cave.residents.filter(x=>x.room_id===r.id&&x.status==='ok');
   let ppl='';
-  if(r.slots>0){ppl=mine.map((x,i)=>`<span class="stn" style="left:${16+i*38}%">${resSvg(x.look,34,'work')}</span>`).join('')}
+  if(r.slots>0){ppl=mine.map((x,i)=>`<span class="stn" style="left:${16+i*38}%">${resAnim('jobb',64)}</span>`).join('')}
   else{
     const dorms=cave.rooms.filter(q=>q.kind==='dorm'),home=dorms.length?dorms:cave.rooms.filter(q=>q.kind==='lounge');
     const idle=cave.residents.filter(x=>!x.room_id||x.status!=='ok');
     const my=idle.filter((x,i)=>home.length&&home[i%home.length].id===r.id);
-    ppl=my.map((x,i)=>{const d=11+(x.id*3)%7;return x.status==='injured'?`<span class="stn" style="left:${22+i*24}%">${resSvg(x.look,34,'sit')}<em class="bdg">🩹</em></span>`:`<span class="cvw" style="--d:${d}s;--dl:-${(x.id*2.7)%d}s"><i>${resSvg(x.look,34,'')}</i></span>`}).join('')}
+    ppl=my.map((x,i)=>{const d=11+(x.id*3)%7;return x.status==='injured'?`<span class="stn" style="left:${22+i*24}%">${resSvg(x.look,44,'sit')}<em class="bdg">🩹</em></span>`:`<span class="cvw" style="--d:${d}s;--dl:-${(x.id*2.7)%d}s"><i>${resAnim('gang',60)}</i></span>`}).join('')}
   const warn=r.slots>0&&mine.length<r.slots?`<span class="need">${mine.length}/${r.slots}</span>`:(r.slots>0?`<span class="okc">${mine.length}/${r.slots}</span>`:'');
   const tint=CC[r.color]?`<div class="rw" style="background-color:${CC[r.color]}"></div>`:'<div class="rw"></div>';
   return `<div class="fsroom ${r.color==='night'?'dark':''} ${pw?'':'off'}" role="button" tabindex="0" data-room="${r.id}" aria-label="${esc(r.name)}" ${rimg(RFILE[r.kind]||'lager')}>${tint}<div class="rh"><span>${esc(r.name)}</span><span style="color:#ffd23f">${'★'.repeat(r.level)}</span></div>${warn}${r.decor?`<span class="rd">${CD[r.decor]?CD[r.decor][0]:''}</span>`:''}${roomFxIcon(r,pw)}${ppl}</div>`}
