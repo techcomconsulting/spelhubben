@@ -440,6 +440,28 @@
   @keyframes cvbr{from{left:0}to{left:calc(100% - 28px)}}
   .cvslot{background:rgba(0,0,0,.28);min-height:104px}
   @media (prefers-reduced-motion:reduce){.cvw,.cvw>i,.cvsurf .cl,.cvguard{animation:none!important}.cvpaint,.cvbrush,.cvpainter{display:none}}
+  .fshud{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:0 0 10px;background:#1d2a2c;border-radius:16px;padding:8px;border:2px solid #3d5558}
+  .fsg{text-align:center;color:#f4e9b5;font-weight:800;font-size:13px}.fsg b{display:block;font-size:17px;margin-bottom:2px}
+  .fsbar{height:7px;border-radius:5px;background:#0e1718;margin:3px 0;overflow:hidden}.fsbar i{display:block;height:100%;background:linear-gradient(90deg,#ffd23f,#ff9f1c)}
+  .fsg.food .fsbar i{background:linear-gradient(90deg,#8bd450,#3aa655)}.fsg.metal .fsbar i{background:linear-gradient(90deg,#9fb4c7,#6c8aa6)}.fsg.cr .fsbar i{background:linear-gradient(90deg,#9be7ff,#4da3ff)}
+  .fsvault{position:relative;background:#16110c;border:3px solid #4b4033;border-top:none;border-radius:0 0 18px 18px;overflow:hidden}
+  .fsshaft{position:absolute;left:0;top:0;bottom:0;width:30px;background:repeating-linear-gradient(#2e2e2e 0 9px,#1f1f1f 9px 11px);border-right:3px solid #666;z-index:1}
+  .fscab{position:absolute;left:3px;width:20px;height:26px;background:linear-gradient(#ffd54a,#e0a800);border:1.5px solid #6b5400;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;animation:fscab 12s ease-in-out infinite alternate}
+  @keyframes fscab{from{top:4px}to{top:calc(100% - 30px)}}
+  .fsfloor{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-left:30px;padding:3px 3px 0;border-bottom:3px solid #555;background:#241b13}
+  .fsroom{position:relative;height:114px;border-radius:5px 5px 0 0;overflow:hidden;border:2px solid #3a342d;border-bottom:none;cursor:pointer;background:#111}
+  .fsroom .rw{position:absolute;inset:0;background-image:radial-gradient(ellipse at 50% 0,rgba(255,255,210,.55),transparent 70%),repeating-linear-gradient(90deg,rgba(0,0,0,.06) 0 2px,transparent 2px 20px)}
+  .fsroom .rf{position:absolute;left:0;right:0;bottom:0;height:22px;background:linear-gradient(#7b7b7b,#4c4c4c);border-top:2px solid #9a9a9a}
+  .fsroom .rh{position:absolute;top:0;left:0;right:0;height:17px;background:rgba(15,20,22,.72);color:#ffe28a;font-size:10px;font-weight:800;display:flex;justify-content:space-between;align-items:center;padding:0 5px;z-index:3;white-space:nowrap;overflow:hidden}
+  .fsroom .rh span:first-child{overflow:hidden;text-overflow:ellipsis;max-width:68%}
+  .fsroom .fp{position:absolute;bottom:20px;font-size:28px;line-height:1;z-index:1}
+  .fsroom .rd{position:absolute;right:6px;top:24px;font-size:24px;z-index:1}
+  .fsroom .cvw{bottom:22px;font-size:22px;z-index:2;--mx:72%}.fsroom .cvw.hero{font-size:25px;filter:drop-shadow(0 0 5px gold)}
+  .fsroom .cvw.mn i{filter:hue-rotate(0)}
+  .fsempty{height:114px;border-radius:5px 5px 0 0;border:2px dashed #5a4c3b;background:repeating-linear-gradient(135deg,#2a2016 0 8px,#241b13 8px 16px);color:#d8c9a8;font-family:inherit;font-weight:800;font-size:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+  .fsbub{position:absolute;top:20px;left:50%;transform:translateX(-50%);z-index:6;background:#fff;border:2px solid #ffb020;border-radius:999px;padding:2px 9px;font-size:13px;font-weight:800;color:#2b2200;animation:cvbob 1s ease-in-out infinite;cursor:pointer;font-family:inherit;white-space:nowrap;box-shadow:0 3px 8px rgba(0,0,0,.4)}
+  .fsdoor{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);width:54px;height:46px;border-radius:50% 50% 4px 4px;background:radial-gradient(circle at 50% 40%,#e9c548 0 28%,#9a8a3a 30% 38%,#4b5a63 40%);border:3px solid #2b3338;z-index:2;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#2b3338}
+  @media (prefers-reduced-motion:reduce){.fscab,.fsbub{animation:none!important}}
 </style>
 </head>
 <body>
@@ -591,7 +613,7 @@ async function boot(sess){
 
 /* ---------- GROTTAN ---------- */
 let cave=null,caveT=null,caveSkew=0,caveFlag='',caveN=0;
-const CK={workshop:{e:'🛠️',n:'Verkstad',d:'+10 % fynd per nivå',s:30,m:5},defense:{e:'🛡️',n:'Försvar',d:'+12 försvar per nivå',s:40,m:10},lounge:{e:'🛋️',n:'Vardagsrum',d:'Bara för det fina',s:15,m:0}};
+const CK={workshop:{e:'🛠️',n:'Verkstad',d:'+10 % fynd per nivå',s:30,m:5},defense:{e:'🛡️',n:'Försvar',d:'+12 försvar per nivå',s:40,m:10},lounge:{e:'🛋️',n:'Vardagsrum',d:'Bara för det fina',s:15,m:0},dorm:{e:'🛏️',n:'Sovsal',d:'Rymmer 2 överlevande per nivå. De samlar sten, metall och mat.',s:25,m:3}};
 const CD={plant:['🪴','Växt'],lamp:['🕯️','Ljus'],rug:['🧶','Matta'],painting:['🖼️','Tavla'],statue:['🗿','Staty'],fish:['🐠','Fisk'],trophy:['🏆','Pokal'],orb:['🔮','Kristallkula'],crown:['👑','Krona']};
 const CC={sand:'#efe3c6',rose:'#f6c6d2',sky:'#bfe0f5',mint:'#c4ecd5',lilac:'#dccbf2',sun:'#fbe59a',coral:'#f9b7a0',night:'#4a5170'};
 const CMIS={kort:['5 min',5,'Snabbt'],medel:['1 timme',60,'Bättre fynd'],lang:['8 timmar',480,'Bäst fynd']};
@@ -616,14 +638,22 @@ function drawCave(){
       :`<p>Är ute på uppdrag (${CMIS[s.mission_kind][0]}). Hemma om <b id="cvtime">${fmtT(left)}</b></p><div class="cvbar"><i id="cvbar" style="width:${Math.min(100,100-left/(s.mission_min*600))}%"></i></div><button class="btn sm ghost" id="cvrecall">Kalla hem nu (halva fyndet)</button>`;
   } else mis=`<p>Skicka iväg ${esc(s.helper_name)}. Längre uppdrag ger bättre fynd!</p><div class="cvmis">${Object.entries(CMIS).map(([k,v])=>`<button data-mis="${k}" ${k==='lang'&&lvl<2?'disabled':''}>${v[0]}<small>${k==='lang'&&lvl<2?'Nivå 2':v[2]}</small></button>`).join('')}</div>`;
   const atkMs=new Date(s.next_attack_at).getTime()-cnow(), ok=s.defense>=s.next_str, last=(s.log||[])[0];
-  const atk=`<div class="cvbox"><h3>⚔️ Nästa attack om <span id="cvatk">${fmtT(atkMs)}</span></h3><p>Fiendens styrka: <b>${s.next_str}</b> · Ditt försvar: <b>${s.defense}</b> ${ok?'✅':'⚠️'}</p><p style="opacity:.75;font-size:13px">${ok?'Du klarar nästa attack!':'Bygg eller uppgradera 🛡️ Försvar, annars förlorar du en fjärdedel av stenen och metallen.'}</p>${last?`<p style="font-size:13px">Senaste attacken: ${last.win?`Du vann ✅ +${last.stone} 🪨 +${last.metal} ⚙️`:`Förlorade ❌ ${last.stone} 🪨 ${last.metal} ⚙️`}</p>`:''}</div>`;
+  const atk=`<div class="cvbox"><h3>⚔️ Nästa attack om <span id="cvatk">${fmtT(atkMs)}</span></h3><p>Fiendens styrka: <b>${s.next_str}</b> · Ditt försvar: <b>${s.defense}</b> ${ok?'✅':'⚠️'}</p><p style="opacity:.75;font-size:13px">${ok?'Du klarar nästa attack!':'Bygg eller uppgradera 🛡️ Försvar, annars förlorar du en fjärdedel av stenen och metallen, och en överlevande flyr.'}</p>${last?`<p style="font-size:13px">Senaste attacken: ${last.win?`Du vann ✅ +${last.stone} 🪨 +${last.metal} ⚙️`:`Förlorade ❌ ${last.stone} 🪨 ${last.metal} ⚙️`}</p>`:''}</div>`;
   const floors=[];
+  const pendC=s.pending||{stone:0,metal:0,food_delta:0},pend=[(pendC.stone?pendC.stone+'🪨':''),(pendC.metal?pendC.metal+'⚙️':''),(pendC.food_delta?(pendC.food_delta>0?'+':'')+pendC.food_delta+'🍖':'')].filter(Boolean).join(' '),survReady=(pendC.stone||pendC.metal||pendC.food_delta)&&(s.surv_miners+s.surv_farmers>0);
+  const missDone=s.mission_kind&&(new Date(s.mission_start).getTime()+s.mission_min*60000-cnow()<=0);
+  const dorms=cave.rooms.filter(r=>r.kind==='dorm'),dormPpl={},dormFirst=(dorms[0]||{}).id;
+  {const pool=[...Array(s.surv_miners).fill('🧑‍🏭'),...Array(s.surv_farmers).fill('🧑‍🌾')];dorms.forEach(r=>{dormPpl[r.id]=pool.splice(0,r.level*2)})}
   for(let f=1;f<=s.depth;f++){
     const tiles=[0,1,2].map(sl=>{const r=cave.rooms.find(x=>x.floor===f&&x.slot===sl);
-      if(!r) return `<button class="cvslot" data-slot="${f},${sl}"><span style="font-size:24px">＋</span>Bygg</button>`;
-      const k=CK[r.kind]||CK.lounge,W=['🧑‍🔧','🧑‍🌾','🧑‍🍳','🧑‍🔬'],wk=W[r.id%W.length],d=9+(r.id*3)%8,heroHere=!s.mission_kind&&r.id===(cave.rooms[0]||{}).id;
-      return `<div class="cvroom ${r.color==='night'?'dark':''}" role="button" tabindex="0" data-room="${r.id}"><div class="rw" style="background-color:${CC[r.color]||CC.sand}"></div><div class="rf"></div><span class="rn">${esc(r.name)}</span>${r.decor?`<span class="rd">${CD[r.decor]?CD[r.decor][0]:''}</span>`:''}<span class="rk">${k.e}</span><span class="cvw" style="--d:${d}s;--dl:-${(r.id*2.3)%d}s"><i>${wk}</i></span>${heroHere?`<span class="cvw hero" style="--d:11s;--dl:-3s;--mx:60%"><i>👷</i></span>`:''}<span class="rl">${'★'.repeat(r.level)}</span></div>`}).join('');
-    floors.push(`<div class="cvfloor" style="background-color:hsl(26,32%,${Math.max(14,30-f*1.5)}%)"><span class="cvfl">${f}</span>${tiles}</div>`)}
+      if(!r) return `<button class="fsempty" data-slot="${f},${sl}"><span style="font-size:24px">＋</span>Bygg</button>`;
+      const k=CK[r.kind]||CK.lounge,W=['🧑‍🔧','🧑‍🌾','🧑‍🍳','🧑‍🔬'],d0=9+(r.id*3)%8,heroHere=!s.mission_kind&&r.id===(cave.rooms[0]||{}).id;
+      const props={workshop:['🛠️','⚙️'],defense:['🛡️','🗡️'],lounge:['🛋️','📺'],dorm:['🛏️','🛏️']}[r.kind]||['🛋️'];
+      const ppl=(dormPpl[r.id]||(r.kind==='dorm'?[]:[W[r.id%W.length]]));
+      const walkers=ppl.map((e,i)=>`<span class="cvw" style="--d:${d0+i*3}s;--dl:-${((r.id+i)*2.3)%(d0+i*3)}s"><i>${e}</i></span>`).join('')+(heroHere?`<span class="cvw hero" style="--d:11s;--dl:-3s;--mx:60%"><i>👷</i></span>`:'');
+      const bub=(r.kind==='dorm'&&dormFirst===r.id&&survReady)?`<button class="fsbub" data-bub="surv" aria-label="Samla in">🎒</button>`:(missDone&&r.id===(cave.rooms[0]||{}).id?`<button class="fsbub" data-bub="mis">🎁 Hemma!</button>`:'');
+      return `<div class="fsroom ${r.color==='night'?'dark':''}" role="button" tabindex="0" data-room="${r.id}"><div class="rw" style="background-color:${CC[r.color]||CC.sand}"></div><div class="rf"></div><div class="rh"><span>${esc(r.name)}</span><span style="color:#ffd23f">${'★'.repeat(r.level)}</span></div>${r.decor?`<span class="rd">${CD[r.decor]?CD[r.decor][0]:''}</span>`:''}<span class="fp" style="left:5px">${props[0]}</span>${props[1]?`<span class="fp" style="right:34px;font-size:22px">${props[1]}</span>`:''}${walkers}${bub}</div>`}).join('');
+    floors.push(`<div class="fsfloor"><span class="cvfl" style="left:34px;top:19px;z-index:4;display:none">${f}</span>${tiles}</div>`)}
   const hr=new Date().getHours(),night=hr>=20||hr<6,defRooms=cave.rooms.filter(r=>r.kind==='defense').length;
   const EN=['🧟','🐺','🧟‍♀️','🐻','🐗','🐍','🦂','🕷️','👹'],pool=EN.slice(0,Math.min(EN.length,3+s.attack_no)),ne=Math.min(7,2+Math.floor(s.attack_no/2)+(night?1:0));
   let surf='';for(let i=0;i<ne;i++){const d=13+(i*5)%11;surf+=`<span class="cvw en" style="--d:${d}s;--dl:-${(i*3.7)%d}s"><i>${pool[(i*2+s.attack_no)%pool.length]}</i></span>`}
@@ -635,11 +665,13 @@ function drawCave(){
   const inv=cave.decor.length?cave.decor.map(d=>`<span>${CD[d.kind]?CD[d.kind][0]:'?'} ×${d.qty}</span>`).join(''):'<span style="opacity:.6">Inga än. Hjälparen kan hitta saker!</span>';
   root.innerHTML=`${brand}
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><button class="btn sm ghost" id="cvback" style="width:auto;margin:0">‹ Hem</button><h2 style="margin:0;flex:1;font-size:20px">⛏️ ${esc(s.cave_name)}</h2><button class="btn sm ghost" id="cvren" style="width:auto;margin:0" aria-label="Byt namn">✏️</button></div>
-    <div class="cvres"><span class="bgpill">🪨 ${s.stone}</span><span class="bgpill">⚙️ ${s.metal}</span><span class="bgpill">💎 ${s.crystal}</span><button class="bgpill" id="cvmkt" style="border:none;cursor:pointer;font-family:inherit;font-size:14px;background:var(--gold);color:#2b2200">🤝 Torget</button></div>
+    <div class="fshud"><div class="fsg food"><b>🍖 ${s.food}</b><div class="fsbar"><i style="width:${Math.min(100,Math.round(s.food/Math.max(12,(s.surv_miners+s.surv_farmers)*12)*100))}%"></i></div>Mat</div><div class="fsg"><b>🪨 ${s.stone}</b><div class="fsbar"><i style="width:${Math.min(100,Math.round(s.stone/4))}%"></i></div>Sten</div><div class="fsg metal"><b>⚙️ ${s.metal}</b><div class="fsbar"><i style="width:${Math.min(100,s.metal)}%"></i></div>Metall</div><div class="fsg cr"><b>💎 ${s.crystal}</b><div class="fsbar"><i style="width:${Math.min(100,s.crystal*10)}%"></i></div>Kristall</div></div>
+    <div style="display:flex;gap:8px;margin:0 0 10px"><button class="btn sm" id="cvmkt" style="margin:0;background:var(--gold);color:#2b2200;width:auto;padding:8px 16px">🤝 Torget</button></div>
+    ${surfH}<div class="fsvault"><div class="fsshaft"><div class="fscab">⇅</div></div>${floors.join('')}</div>
+    <button class="cvdig" id="cvdig" style="margin-top:-2px">⛏️ Gräv en våning till · ${costTxt(dc)}</button>
     <div class="cvbox"><div class="cvhelper"><div class="hv">👷</div><div style="flex:1"><h3 style="margin:0">${esc(s.helper_name)}</h3><p style="margin:0">Nivå ${lvl}</p><div class="cvbar"><i style="width:${pct}%"></i></div></div></div>${mis}</div>
+    <div class="cvbox"><h3>🏘️ Överlevande ${s.surv_miners+s.surv_farmers}/${s.capacity}</h3>${s.capacity===0?'<p>Bygg en <b>🛏️ Sovsal</b> så kan andra söka skydd hos dig. De samlar sten, metall och mat åt dig.</p>':`<p>⛏️ ${s.surv_miners} gruvarbetare · 🌾 ${s.surv_farmers} bönder. Alla äter 1 🍖 i timmen.</p>${s.surv_miners+s.surv_farmers<s.capacity?`<p>Nästa person söker skydd om <b id="cvarr">${fmtT(new Date(s.next_arrival_at).getTime()-cnow())}</b></p>`:'<p>Sovsalarna är fulla. Bygg eller uppgradera en Sovsal för fler.</p>'}${survReady?`<p>Redo att samla: <b>${pend}</b></p><button class="btn" id="cvsurv">🎒 Samla in</button>`:'<p style="opacity:.65">Inget att samla in just nu.</p>'}`}</div>
     ${atk}
-    ${surfH}${floors.join('')}
-    <button class="cvdig" id="cvdig">⛏️ Gräv en våning till · ${costTxt(dc)}</button>
     <div class="cvbox" style="margin-top:12px"><h3>🎨 Dina pynt-saker</h3><div class="cvdec">${inv}</div><p style="opacity:.7;font-size:13px">Tryck på ett rum för att pynta, byta färg eller uppgradera.</p></div>`;
   document.getElementById('cvback').onclick=()=>{clearInterval(caveT);go('home')};
   document.getElementById('cvren').onclick=()=>{caveSheet(`<h2>Byt namn</h2><label>Grottans namn</label><input id="cn1" maxlength="24" value="${esc(s.cave_name)}"><label>Hjälparens namn</label><input id="cn2" maxlength="20" value="${esc(s.helper_name)}"><button class="btn" id="cnok">Spara</button><button class="btn ghost" id="cnx">Stäng</button>`);
@@ -648,6 +680,9 @@ function drawCave(){
   const cc=document.getElementById('cvcollect');if(cc)cc.onclick=async()=>{cc.disabled=true;const {data,error}=await caveCall('cave_collect');if(!error&&data)showFound(data)};
   const cr=document.getElementById('cvrecall');if(cr)cr.onclick=async()=>{cr.disabled=true;const {data,error}=await caveCall('cave_collect');if(!error&&data)showFound(data)};
   document.getElementById('cvdig').onclick=()=>caveCall('cave_dig');
+  const collS=async b=>{if(b)b.disabled=true;const {data,error}=await caveCall('cave_survivors_collect');if(!error&&data){const p=[];if(data.stone)p.push('+'+data.stone+' 🪨');if(data.metal)p.push('+'+data.metal+' ⚙️');if(data.food_delta)p.push((data.food_delta>0?'+':'')+data.food_delta+' 🍖');caveToast('Insamlat! '+p.join('  '))}};
+  const sv=document.getElementById('cvsurv');if(sv)sv.onclick=()=>collS(sv);
+  root.querySelectorAll('[data-bub]').forEach(b=>b.onclick=e=>{e.stopPropagation();if(b.dataset.bub==='surv')collS(b);else{b.disabled=true;caveCall('cave_collect').then(({data,error})=>{if(!error&&data)showFound(data)})}});
   document.getElementById('cvmkt').onclick=openMarket;updMarketBadge();if(!cvOff)loadOffers().then(updMarketBadge);
   root.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>{const [f,sl]=b.dataset.slot.split(',').map(Number);
     caveSheet(`<h2>Bygg ett rum</h2>${Object.entries(CK).map(([k,v])=>{const c=ccost(k,1);return `<button class="cvopt" data-k="${k}" ${canPay(c)?'':'disabled'}><span class="oe">${v.e}</span><span><b>${v.n}</b><small>${v.d}</small><small>${costTxt(c)}</small></span></button>`}).join('')}<button class="btn ghost" id="cbx">Stäng</button>`);
@@ -693,6 +728,7 @@ function tickCave(){
     if(left<=0&&t&&caveFlag!=='m'){caveFlag='m';if(!document.getElementById('cvov'))drawCave();return}
     if(t)t.textContent=fmtT(left);const b=document.getElementById('cvbar');if(b)b.style.width=Math.min(100,100-left/(s.mission_min*600))+'%'}
   caveN=(typeof caveN==='number'?caveN:0)+1;if(caveN%30===0&&!document.getElementById('cvov'))loadOffers().then(updMarketBadge);
+  const ar=document.getElementById('cvarr');if(ar){const l=new Date(s.next_arrival_at).getTime()-cnow();ar.textContent=fmtT(l);if(l<=-1500&&caveFlag!=='r'){caveFlag='r';loadCave().then(()=>{if(page==='cave'&&!document.getElementById('cvov'))drawCave()})}}
   const atk=new Date(s.next_attack_at).getTime()-cnow(),a=document.getElementById('cvatk');
   if(a)a.textContent=fmtT(atk);
   if(atk<=-1500&&caveFlag!=='a'){caveFlag='a';loadCave().then(()=>{if(page==='cave'&&!document.getElementById('cvov'))drawCave()})}
@@ -700,9 +736,9 @@ function tickCave(){
 
 /* ---------- TORGET (handel mellan vänner) ---------- */
 let cvOff=null,cvMode='sell',cvDraft={to:'',a:'stone',aq:10,b:'coins',bq:20};
-const IT=Object.assign({stone:['🪨','Sten'],metal:['⚙️','Metall'],crystal:['💎','Kristall'],coins:['🪙','Mynt']},Object.fromEntries(Object.entries(CD)));
+const IT=Object.assign({stone:['🪨','Sten'],metal:['⚙️','Metall'],crystal:['💎','Kristall'],coins:['🪙','Mynt'],food:['🍖','Mat']},Object.fromEntries(Object.entries(CD)));
 const itx=(k,q)=>(IT[k]?IT[k][0]:'?')+' '+q+' '+(IT[k]?IT[k][1].toLowerCase():'');
-Object.assign(CERR,{not_friend:'Ni är inte vänner.',too_many:'Du har redan 5 öppna erbjudanden.',gone:'Erbjudandet finns inte längre.',own_offer:'Det är ditt eget erbjudande.',not_yours:'Det här erbjudandet är inte till dig.',bad_item:'Välj två olika saker.',bad_qty:'Fel antal (1–999, mynt max 500).'});
+Object.assign(CERR,{nothing:'Inget att samla in än.',not_friend:'Ni är inte vänner.',too_many:'Du har redan 5 öppna erbjudanden.',gone:'Erbjudandet finns inte längre.',own_offer:'Det är ditt eget erbjudande.',not_yours:'Det här erbjudandet är inte till dig.',bad_item:'Välj två olika saker.',bad_qty:'Fel antal (1–999, mynt max 500).'});
 function haveItem(k){const s=cave.state;return k==='coins'?(wallet||0):k==='stone'?s.stone:k==='metal'?s.metal:k==='crystal'?s.crystal:((cave.decor.find(d=>d.kind===k)||{}).qty||0)}
 async function loadOffers(){const {data}=await db.rpc('cave_offers');if(data)cvOff=data;return data}
 function updMarketBadge(){const b=document.getElementById('cvmkt');if(b&&cvOff)b.innerHTML='🤝 Torget'+(cvOff.incoming.length?` <span style="display:inline-block;margin-left:4px;background:var(--red);color:#fff;font-size:11px;min-width:18px;border-radius:9px;padding:1px 5px">${cvOff.incoming.length}</span>`:'')}
