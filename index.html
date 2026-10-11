@@ -386,6 +386,28 @@
   .crz.bgrow .pb{border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.2)}
   @media (prefers-reduced-motion:reduce){.crz.bcards .bc.free{animation:none}}
   .wrap{padding-top:calc(env(safe-area-inset-top,0px) + 20px)!important}
+  .cvres{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.cvres .bgpill{padding:6px 12px;font-size:14px}
+  .cvbox{background:var(--surface);border-radius:20px;padding:14px;box-shadow:0 4px 12px var(--shadow);margin-bottom:12px}
+  .cvbox h3{margin:0 0 6px;font-size:16px}.cvbox p{margin:4px 0;font-size:14px}
+  .cvhelper{display:flex;gap:12px;align-items:center;margin-bottom:10px}.cvhelper .hv{font-size:44px;line-height:1;background:var(--cream-dim);border-radius:50%;width:64px;height:64px;display:flex;align-items:center;justify-content:center;flex:none}
+  .cvbar{height:8px;border-radius:6px;background:var(--cream-dim);overflow:hidden;margin:6px 0}.cvbar i{display:block;height:100%;background:linear-gradient(90deg,#ffb020,#ff7a45)}
+  .cvmis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.cvmis button{border:none;border-radius:14px;padding:12px 4px;background:var(--cream-dim);font-family:inherit;font-weight:700;font-size:14px;color:var(--ink);cursor:pointer}
+  .cvmis button small{display:block;font-weight:500;font-size:11px;opacity:.7;margin-top:2px}.cvmis button[disabled]{opacity:.45}
+  .cvsky{height:46px;border-radius:20px 20px 0 0;background:linear-gradient(#9fd8ff,#d8f1ff);display:flex;align-items:flex-end;justify-content:space-around;font-size:26px;padding-bottom:0;overflow:hidden}
+  .cvgrass{height:10px;background:#5aa845}
+  .cvfloor{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px;position:relative}
+  .cvfl{position:absolute;left:3px;top:3px;font-size:10px;color:rgba(255,255,255,.55);font-weight:700}
+  .cvslot{min-height:92px;border-radius:14px;border:2.5px dashed rgba(255,255,255,.35);background:rgba(0,0,0,.18);color:#fff;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px}
+  .cvroom{min-height:92px;border-radius:14px;border:none;font-family:inherit;color:#2b2b2b;cursor:pointer;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 4px;box-shadow:inset 0 -6px 12px rgba(0,0,0,.08),0 3px 8px rgba(0,0,0,.3);font-size:12px;font-weight:700}
+  .cvroom .re{font-size:28px;line-height:1}.cvroom .rd{position:absolute;right:5px;top:3px;font-size:20px}.cvroom .rl{font-size:10px;letter-spacing:1px}
+  .cvroom.dark{color:#fff}
+  .cvdig{width:100%;border:none;border-radius:0 0 20px 20px;padding:14px;background:#3a2a1d;color:#ffe9b8;font-family:inherit;font-weight:800;font-size:15px;cursor:pointer}
+  .cvdec{display:flex;flex-wrap:wrap;gap:8px}.cvdec span{background:var(--cream-dim);border-radius:12px;padding:6px 10px;font-size:15px}
+  .cvcols{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.cvcols button{width:36px;height:36px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.25);cursor:pointer}.cvcols button.on{box-shadow:0 0 0 3px var(--forest)}
+  .cvsheet input{width:100%;box-sizing:border-box;padding:10px 12px;border-radius:12px;border:1.5px solid var(--felt-edge);font-size:16px;font-family:inherit;margin:4px 0 8px;background:#fff}
+  .cvsheet .btn{margin-top:8px}.cvgrp{margin:14px 0 4px;font-weight:800;font-size:14px}
+  .cvopt{display:flex;align-items:center;gap:10px;width:100%;border:none;border-radius:14px;background:var(--surface);padding:12px;margin-bottom:8px;font-family:inherit;font-size:14px;text-align:left;color:var(--ink);cursor:pointer;box-shadow:0 3px 8px var(--shadow)}.cvopt .oe{font-size:30px}.cvopt small{display:block;opacity:.7}
+  .cvopt[disabled]{opacity:.45}
 </style>
 </head>
 <body>
@@ -535,6 +557,99 @@ async function boot(sess){
   showNews();
 }
 
+/* ---------- GROTTAN ---------- */
+let cave=null,caveT=null,caveSkew=0,caveFlag='';
+const CK={workshop:{e:'🛠️',n:'Verkstad',d:'+10 % fynd per nivå',s:30,m:5},defense:{e:'🛡️',n:'Försvar',d:'+12 försvar per nivå',s:40,m:10},lounge:{e:'🛋️',n:'Vardagsrum',d:'Bara för det fina',s:15,m:0}};
+const CD={plant:['🪴','Växt'],lamp:['🕯️','Ljus'],rug:['🧶','Matta'],painting:['🖼️','Tavla'],statue:['🗿','Staty'],fish:['🐠','Fisk'],trophy:['🏆','Pokal'],orb:['🔮','Kristallkula'],crown:['👑','Krona']};
+const CC={sand:'#efe3c6',rose:'#f6c6d2',sky:'#bfe0f5',mint:'#c4ecd5',lilac:'#dccbf2',sun:'#fbe59a',coral:'#f9b7a0',night:'#4a5170'};
+const CMIS={kort:['5 min',5,'Snabbt'],medel:['1 timme',60,'Bättre fynd'],lang:['8 timmar',480,'Bäst fynd']};
+const CERR={no_funds:'Du har inte råd ännu.',level_too_low:'Hjälparen behöver nivå 2.',already_away:'Hjälparen är redan iväg.',slot_taken:'Platsen är upptagen.',max_level:'Redan högsta nivån.',max_depth:'Grottan kan inte bli djupare.',no_item:'Du har inte den saken.',bad_name:'Skriv ett namn (1–20 tecken).'};
+function ccost(k,l){const b=CK[k],f=Math.pow(l,1.6);return [Math.round(b.s*f),Math.round(b.m*f),l>=4?l-3:0]}
+const cnow=()=>Date.now()+caveSkew;
+function fmtT(ms){ms=Math.max(0,ms);const s=Math.ceil(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h>0?h+':'+String(m).padStart(2,'0')+':'+String(s%60).padStart(2,'0'):m+':'+String(s%60).padStart(2,'0')}
+function caveToast(m){const t=el('div',{class:'reminder-toast'},m);document.body.appendChild(t);setTimeout(()=>t.remove(),3400)}
+async function loadCave(){const {data,error}=await db.rpc('cave_get');if(error||!data)return false;cave=data;caveSkew=new Date(data.now)-Date.now();return true}
+function closeCaveSheet(){const o=document.getElementById('cvov');if(o)o.remove()}
+async function caveCall(fn,args,reopen){const {data,error}=await db.rpc(fn,args||{});if(error)caveToast(CERR[(error.message||'').trim()]||'Något gick fel.');await loadCave();closeCaveSheet();if(page==='cave'){drawCave();if(reopen)reopen()}return {data,error}}
+function caveSheet(inner){closeCaveSheet();const o=el('div',{class:'overlay',id:'cvov'});o.innerHTML=`<div class="sheet cvsheet">${inner}</div>`;o.onclick=e=>{if(e.target===o)closeCaveSheet()};document.body.appendChild(o);return o}
+function costTxt(c){return `🪨 ${c[0]}${c[1]?` · ⚙️ ${c[1]}`:''}${c[2]?` · 💎 ${c[2]}`:''}`}
+function canPay(c){const s=cave.state;return s.stone>=c[0]&&s.metal>=c[1]&&s.crystal>=c[2]}
+function drawCave(){
+  if(!cave){root.innerHTML=`${brand}<p class="empty">Laddar grottan…</p>`;loadCave().then(ok=>{if(page!=='cave')return;if(ok)drawCave();else{root.innerHTML=`${brand}<p class="empty">Kunde inte öppna grottan.</p><button class="btn" id="cvback">Tillbaka</button>`;document.getElementById('cvback').onclick=()=>go('home')}});return}
+  const s=cave.state,lvl=s.helper_level,x0=10*(lvl-1)*(lvl-1),x1=10*lvl*lvl,pct=Math.max(0,Math.min(100,Math.round((s.helper_xp-x0)/(x1-x0)*100)));
+  let mis='';
+  if(s.mission_kind){
+    const end=new Date(s.mission_start).getTime()+s.mission_min*60000,left=end-cnow();
+    mis=left<=0?`<p><b>${esc(s.helper_name)} är tillbaka!</b></p><button class="btn" id="cvcollect">🎁 Ta emot fynd</button>`
+      :`<p>Är ute på uppdrag (${CMIS[s.mission_kind][0]}). Hemma om <b id="cvtime">${fmtT(left)}</b></p><div class="cvbar"><i id="cvbar" style="width:${Math.min(100,100-left/(s.mission_min*600))}%"></i></div><button class="btn sm ghost" id="cvrecall">Kalla hem nu (halva fyndet)</button>`;
+  } else mis=`<p>Skicka iväg ${esc(s.helper_name)}. Längre uppdrag ger bättre fynd!</p><div class="cvmis">${Object.entries(CMIS).map(([k,v])=>`<button data-mis="${k}" ${k==='lang'&&lvl<2?'disabled':''}>${v[0]}<small>${k==='lang'&&lvl<2?'Nivå 2':v[2]}</small></button>`).join('')}</div>`;
+  const atkMs=new Date(s.next_attack_at).getTime()-cnow(), ok=s.defense>=s.next_str, last=(s.log||[])[0];
+  const atk=`<div class="cvbox"><h3>⚔️ Nästa attack om <span id="cvatk">${fmtT(atkMs)}</span></h3><p>Fiendens styrka: <b>${s.next_str}</b> · Ditt försvar: <b>${s.defense}</b> ${ok?'✅':'⚠️'}</p><p style="opacity:.75;font-size:13px">${ok?'Du klarar nästa attack!':'Bygg eller uppgradera 🛡️ Försvar, annars förlorar du en fjärdedel av stenen och metallen.'}</p>${last?`<p style="font-size:13px">Senaste attacken: ${last.win?`Du vann ✅ +${last.stone} 🪨 +${last.metal} ⚙️`:`Förlorade ❌ ${last.stone} 🪨 ${last.metal} ⚙️`}</p>`:''}</div>`;
+  const floors=[];
+  for(let f=1;f<=s.depth;f++){
+    const tiles=[0,1,2].map(sl=>{const r=cave.rooms.find(x=>x.floor===f&&x.slot===sl);
+      if(!r) return `<button class="cvslot" data-slot="${f},${sl}"><span style="font-size:24px">＋</span>Bygg</button>`;
+      const k=CK[r.kind]||CK.lounge;
+      return `<button class="cvroom ${r.color==='night'?'dark':''}" style="background:${CC[r.color]||CC.sand}" data-room="${r.id}">${r.decor?`<span class="rd">${CD[r.decor]?CD[r.decor][0]:''}</span>`:''}<span class="re">${k.e}</span><span>${esc(r.name)}</span><span class="rl">${'★'.repeat(r.level)}</span></button>`}).join('');
+    floors.push(`<div class="cvfloor" style="background:hsl(26,32%,${Math.max(14,30-f*1.5)}%)"><span class="cvfl">${f}</span>${tiles}</div>`)}
+  const nx=s.depth+1,dc=[Math.round(30*Math.pow(nx,1.5)),5*nx,0];
+  const inv=cave.decor.length?cave.decor.map(d=>`<span>${CD[d.kind]?CD[d.kind][0]:'?'} ×${d.qty}</span>`).join(''):'<span style="opacity:.6">Inga än. Hjälparen kan hitta saker!</span>';
+  root.innerHTML=`${brand}
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><button class="btn sm ghost" id="cvback" style="width:auto;margin:0">‹ Hem</button><h2 style="margin:0;flex:1;font-size:20px">⛏️ ${esc(s.cave_name)}</h2><button class="btn sm ghost" id="cvren" style="width:auto;margin:0" aria-label="Byt namn">✏️</button></div>
+    <div class="cvres"><span class="bgpill">🪨 ${s.stone}</span><span class="bgpill">⚙️ ${s.metal}</span><span class="bgpill">💎 ${s.crystal}</span></div>
+    <div class="cvbox"><div class="cvhelper"><div class="hv">👷</div><div style="flex:1"><h3 style="margin:0">${esc(s.helper_name)}</h3><p style="margin:0">Nivå ${lvl}</p><div class="cvbar"><i style="width:${pct}%"></i></div></div></div>${mis}</div>
+    ${atk}
+    <div class="cvsky"><span>☁️</span><span>🌳</span><span>🏠</span><span>🌲</span><span>☁️</span></div><div class="cvgrass"></div>${floors.join('')}
+    <button class="cvdig" id="cvdig">⛏️ Gräv en våning till · ${costTxt(dc)}</button>
+    <div class="cvbox" style="margin-top:12px"><h3>🎨 Dina pynt-saker</h3><div class="cvdec">${inv}</div><p style="opacity:.7;font-size:13px">Tryck på ett rum för att pynta, byta färg eller uppgradera.</p></div>`;
+  document.getElementById('cvback').onclick=()=>{clearInterval(caveT);go('home')};
+  document.getElementById('cvren').onclick=()=>{caveSheet(`<h2>Byt namn</h2><label>Grottans namn</label><input id="cn1" maxlength="24" value="${esc(s.cave_name)}"><label>Hjälparens namn</label><input id="cn2" maxlength="20" value="${esc(s.helper_name)}"><button class="btn" id="cnok">Spara</button><button class="btn ghost" id="cnx">Stäng</button>`);
+    document.getElementById('cnx').onclick=closeCaveSheet;document.getElementById('cnok').onclick=()=>caveCall('cave_rename',{p_cave:document.getElementById('cn1').value,p_helper:document.getElementById('cn2').value})};
+  root.querySelectorAll('[data-mis]').forEach(b=>b.onclick=async()=>{b.disabled=true;await caveCall('cave_send',{p_kind:b.dataset.mis})});
+  const cc=document.getElementById('cvcollect');if(cc)cc.onclick=async()=>{cc.disabled=true;const {data,error}=await caveCall('cave_collect');if(!error&&data)showFound(data)};
+  const cr=document.getElementById('cvrecall');if(cr)cr.onclick=async()=>{cr.disabled=true;const {data,error}=await caveCall('cave_collect');if(!error&&data)showFound(data)};
+  document.getElementById('cvdig').onclick=()=>caveCall('cave_dig');
+  root.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>{const [f,sl]=b.dataset.slot.split(',').map(Number);
+    caveSheet(`<h2>Bygg ett rum</h2>${Object.entries(CK).map(([k,v])=>{const c=ccost(k,1);return `<button class="cvopt" data-k="${k}" ${canPay(c)?'':'disabled'}><span class="oe">${v.e}</span><span><b>${v.n}</b><small>${v.d}</small><small>${costTxt(c)}</small></span></button>`}).join('')}<button class="btn ghost" id="cbx">Stäng</button>`);
+    document.getElementById('cbx').onclick=closeCaveSheet;
+    document.querySelectorAll('#cvov [data-k]').forEach(o=>o.onclick=()=>caveCall('cave_build',{p_floor:f,p_slot:sl,p_kind:o.dataset.k}))});
+  root.querySelectorAll('[data-room]').forEach(b=>b.onclick=()=>openRoom(+b.dataset.room));
+  caveFlag='';clearInterval(caveT);caveT=setInterval(tickCave,1000);
+}
+function showFound(d){
+  const parts=[];if(d.stone)parts.push('+'+d.stone+' 🪨');if(d.metal)parts.push('+'+d.metal+' ⚙️');if(d.crystal)parts.push('+'+d.crystal+' 💎');
+  (d.decor||[]).forEach(k=>parts.push('+ '+(CD[k]?CD[k][0]+' '+CD[k][1]:k)));
+  caveToast((d.early?'Hemkallad! ':'Fynd! ')+(parts.join('  ')||'Inget den här gången')+(d.levelup?'  ·  ⭐ Ny nivå '+d.level+'!':''));
+  if(d.decor&&d.decor.length&&!d.early)try{celebrate(1,false)}catch(e){}
+}
+function openRoom(id){
+  const r=cave.rooms.find(x=>x.id===id);if(!r)return;const k=CK[r.kind]||CK.lounge,again=()=>openRoom(id);
+  const up=r.level<5?ccost(r.kind,r.level+1):null;
+  caveSheet(`<h2>${k.e} ${esc(r.name)}</h2><p style="margin:0 0 6px">${k.n} · nivå ${r.level} · ${k.d}</p>
+    <input id="rn" maxlength="20" value="${esc(r.name)}"><button class="btn sm ghost" id="rnok" style="width:auto">Spara namn</button>
+    ${up?`<button class="cvopt" id="rup" ${canPay(up)?'':'disabled'}><span class="oe">⬆️</span><span><b>Uppgradera till nivå ${r.level+1}</b><small>${costTxt(up)}</small></span></button>`:'<p><b>Högsta nivån ⭐</b></p>'}
+    <div class="cvgrp">Färg</div><div class="cvcols">${Object.entries(CC).map(([n,c])=>`<button data-col="${n}" class="${r.color===n?'on':''}" style="background:${c}" aria-label="${n}"></button>`).join('')}</div>
+    <div class="cvgrp">Pynt ${r.decor?'· nu: '+(CD[r.decor]||['',''])[0]+' '+(CD[r.decor]||['',''])[1]:''}</div>
+    <div class="cvdec">${cave.decor.map(d=>`<button class="cvopt" style="width:auto;padding:8px 12px;margin:0" data-dec="${d.kind}">${CD[d.kind]?CD[d.kind][0]:'?'} ×${d.qty}</button>`).join('')}${r.decor?`<button class="cvopt" style="width:auto;padding:8px 12px;margin:0" data-dec="">✖ Ta bort</button>`:''}${!cave.decor.length&&!r.decor?'<span style="opacity:.6;font-size:13px">Du har inga pynt-saker än.</span>':''}</div>
+    <button class="btn ghost" id="rx">Stäng</button>`);
+  const q=s=>document.querySelector('#cvov '+s);
+  q('#rx').onclick=closeCaveSheet;
+  q('#rnok').onclick=()=>caveCall('cave_rename_room',{p_room:id,p_name:q('#rn').value},again);
+  const u=q('#rup');if(u)u.onclick=()=>caveCall('cave_upgrade',{p_room:id},again);
+  document.querySelectorAll('#cvov [data-col]').forEach(b=>b.onclick=()=>caveCall('cave_paint',{p_room:id,p_color:b.dataset.col},again));
+  document.querySelectorAll('#cvov [data-dec]').forEach(b=>b.onclick=()=>caveCall('cave_decorate',{p_room:id,p_kind:b.dataset.dec||null},again));
+}
+function tickCave(){
+  if(page!=='cave'||!cave){clearInterval(caveT);return}
+  const s=cave.state;
+  if(s.mission_kind){const end=new Date(s.mission_start).getTime()+s.mission_min*60000,left=end-cnow(),t=document.getElementById('cvtime');
+    if(left<=0&&t&&caveFlag!=='m'){caveFlag='m';if(!document.getElementById('cvov'))drawCave();return}
+    if(t)t.textContent=fmtT(left);const b=document.getElementById('cvbar');if(b)b.style.width=Math.min(100,100-left/(s.mission_min*600))+'%'}
+  const atk=new Date(s.next_attack_at).getTime()-cnow(),a=document.getElementById('cvatk');
+  if(a)a.textContent=fmtT(atk);
+  if(atk<=-1500&&caveFlag!=='a'){caveFlag='a';loadCave().then(()=>{if(page==='cave'&&!document.getElementById('cvov'))drawCave()})}
+}
+
 /* ---------- SHELL ---------- */
 const NAV=[['home','🏠','Hem'],['play','🎴','Spela'],['friends','👥','Vänner'],['top','🏆','Topplista'],['profile','🙂','Profil']];
 function go(p){page=p;notice=null;searchRes=null;searchQ='';if(p==='play')playView='menu';draw();window.scrollTo(0,0)}
@@ -542,7 +657,7 @@ function draw(){
   nav.hidden=false;
   navin.innerHTML=NAV.map(([k,ic,l])=>`<button data-p="${k}" class="${page===k?'on':''}" aria-label="${l}"><span class="ic">${ic}</span>${l}${k==='friends'&&incoming.length?`<span class="dot">${incoming.length}</span>`:''}</button>`).join('');
   navin.querySelectorAll('button').forEach(b=>b.onclick=()=>go(b.dataset.p));
-  ({home:drawHome,play:drawPlay,friends:drawFriends,top:drawTop,profile:drawProfile,admin:drawAdmin})[page]();
+  ({home:drawHome,play:drawPlay,friends:drawFriends,top:drawTop,profile:drawProfile,admin:drawAdmin,cave:drawCave})[page]();
 }
 
 /* ---------- HOME ---------- */
@@ -559,6 +674,7 @@ function drawHome(){
       <button class="game" id="gocrazy" style="border:none;cursor:pointer;font-family:inherit;color:var(--ink)">🎰 Crazy Bingo<span>Många bingon</span></button>
       <button class="game" id="gouno" style="border:none;cursor:pointer;font-family:inherit;color:var(--ink)">🟥 UNO<span>Spela nu</span></button>
       <div class="game" style="grid-column:1/-1">Skip-Bo<span>Kommer senare</span></div>
+      <button class="game" id="gocave" style="border:none;cursor:pointer;font-family:inherit;color:var(--ink);grid-column:1/-1">⛏️ Grottan<span>Bygg nedåt, skicka iväg din hjälpare</span></button>
       <a class="game" id="gotown" href="https://techtown-spel.pages.dev" target="_blank" rel="noopener" style="grid-column:1/-1;text-decoration:none;color:var(--ink)">🏙️ Techtown<span>Bygg din egen stad</span></a>
     
     </div>
@@ -577,6 +693,7 @@ function drawHome(){
   const tt=document.getElementById('gotown'); if(tt) tt.addEventListener('click',()=>{db.rpc('track_click',{p_target:'techtown'})});
   document.getElementById('goidiot').onclick=()=>{gameSel='idiot';playView='menu';go('play')};
   document.getElementById('gobingo').onclick=()=>{gameSel='bingo';go('play')};
+  document.getElementById('gocave').onclick=()=>{cave=null;go('cave')};
   document.getElementById('gocrazy').onclick=()=>{gameSel='crazy';go('play')};
   document.getElementById('gouno').onclick=()=>{gameSel='uno';go('play')};
   document.getElementById('gopoker').onclick=()=>{gameSel='poker';go('play')};
