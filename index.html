@@ -533,6 +533,21 @@
   @keyframes sprbob{50%{transform:translateY(-3px) rotate(2deg)}}@keyframes sprwork{50%{transform:rotate(-4deg) translateY(-2px)}}
   .cvav .rsv.spr{height:46px!important}.cvav.big .rsv.spr{height:84px!important}
   @media (prefers-reduced-motion:reduce){.rsv.spr{animation:none!important}}
+
+  body.cvfull nav,body.cvfull .mark{display:none!important}
+  body.cvfull .wrap{max-width:none!important;padding:0 0 calc(80px + env(safe-area-inset-bottom,0px))!important}
+  body.cvfull{background:#050607}
+  .cvtop{position:sticky;top:0;z-index:20;background:#0b0f10;padding:calc(env(safe-area-inset-top,0px) + 6px) 8px 6px}
+  .cvhead{display:flex;align-items:center;gap:8px;margin-bottom:6px}.cvhead h2{margin:0;flex:1;font-size:17px;color:#f4e9b5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cvhead .btn.sm.ghost{background:#1d2a2c;color:#f4e9b5;border:1px solid #3d5558;min-height:40px}
+  .cvtop .fshud{margin:0;border:none;padding:0;background:transparent}
+  body.cvfull .fswarn{margin:4px 8px 0;font-size:12px;padding:6px 10px}
+  body.cvfull .cvsurf,body.cvfull .fsvault{border-radius:0}.cvsurf{height:130px!important;margin-top:6px}
+  body.cvfull .cvdig{border-radius:0;margin:0}
+  .cvdock{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;gap:6px;padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));background:#0b0f10;border-top:2px solid #3d5558}
+  .cvdock button{flex:1;border:none;border-radius:14px;background:#1d2a2c;color:#f4e9b5;font-family:inherit;font-size:20px;font-weight:800;padding:6px 2px;min-height:52px;cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.1}
+  .cvdock button small{font-size:11px;font-weight:700}
+  .cvtop .fshud{grid-template-columns:repeat(8,1fr);gap:2px}.cvtop .fsg b{font-size:13px;display:flex;align-items:center;justify-content:center;gap:2px}.cvtop .fsg .ri{width:15px;height:15px}.cvtop .fsg .rr{display:none}.cvtop .fsg .cvbar{height:4px;margin:2px 1px}
   @media (prefers-reduced-motion:reduce){.rsv *,.fsg.low,.fsroom .need{animation:none!important}}
 </style>
 </head>
@@ -740,6 +755,7 @@ function warnHtml(){
   const s=cave.state,w=[];
   [['power','El','⚡'],['food','Mat','🍖'],['water','Vatten','💧']].forEach(([k,n,e])=>{const v=projRes(k),rt=(s.rates||{})[k]||0;
     if(v<=0)w.push(`🚨 ${n} är slut! Invånarna mår dåligt.`);else if(rt<0&&v/-rt<12)w.push(`⚠️ ${n} tar slut om ${fmtH(v/-rt)}.`)});
+  if(s.mission_kind&&new Date(s.mission_start).getTime()+s.mission_min*60000<=cnow())w.unshift(`🎁 ${esc(s.helper_name)} är tillbaka! Tryck på 👷 Hjälpare.`);
   const inj=cave.residents.filter(r=>r.status==='injured').length;if(inj)w.push(`🩹 ${inj} skadad${inj>1?'e':''} – bygg och bemanna ett Sjukhus.`);
   const idle=cave.residents.filter(r=>!r.room_id&&r.status==='ok').length;if(idle)w.push(`👤 ${idle} invånare saknar jobb. Tryck på ett rum och sätt dit dem.`);
   return w.slice(0,2).map(x=>`<div class="fswarn">${x}</div>`).join('')
@@ -783,9 +799,10 @@ function tabHtml(){
     return `<div class="cvhelper"><div class="hv">👷</div><div style="flex:1"><h3 style="margin:0">${esc(s.helper_name)}</h3><p style="margin:0">Nivå ${lvl}</p><div class="cvbar"><i style="width:${pct}%"></i></div></div></div>${mis}<div class="cvgrp">🎨 Dina pynt-saker</div><div class="cvdec">${inv}</div>`}
   const atkMs=new Date(s.next_attack_at).getTime()-cnow(),ok=s.defense>=s.next_str,log=(s.log||[]).slice(0,3);
   return `<h3 style="margin:0 0 6px">⚔️ Nästa attack om <span id="cvatk">${fmtT(atkMs)}</span></h3><p>Fiendens styrka: <b>${s.next_str}</b> · Ditt försvar: <b>${s.defense}</b> ${ok?'✅':'⚠️'}</p><p style="opacity:.75;font-size:13px">${ok?'Du klarar nästa attack!':'Bygg och bemanna 🛡️ Försvarsrum, annars förlorar du en fjärdedel av sten och metall, och några invånare skadas.'}</p>${log.map(l=>`<p style="font-size:13px">${l.win?`✅ Vann: +${l.stone} 🪨 +${l.metal} ⚙️`:`❌ Förlorade: ${l.stone} 🪨 ${l.metal} ⚙️`}</p>`).join('')}`}
+function openTab(k){caveTab=k;caveSheet(`<div id="cvtab">${tabHtml()}</div><button class="btn ghost" id="tx">Stäng</button>`);document.getElementById('tx').onclick=closeCaveSheet;bindTab()}
 function bindTab(){
   const q=s=>document.querySelector('#cvtab '+s),qa=s=>document.querySelectorAll('#cvtab '+s);
-  qa('[data-mis]').forEach(b=>b.onclick=async()=>{b.disabled=true;await caveCall('cave_send',{p_kind:b.dataset.mis})});
+  qa('[data-mis]').forEach(b=>b.onclick=async()=>{b.disabled=true;await caveCall('cave_send',{p_kind:b.dataset.mis},()=>openTab('help'))});
   const cc=q('#cvcollect');if(cc)cc.onclick=async()=>{cc.disabled=true;const {data,error}=await caveCall('cave_collect');if(!error&&data)showFound(data)};
   const cr=q('#cvrecall');if(cr)cr.onclick=async()=>{cr.disabled=true;const {data,error}=await caveCall('cave_collect');if(!error&&data)showFound(data)};
   qa('[data-res2]').forEach(b=>{b.onclick=()=>openRes(+b.dataset.res2);b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRes(+b.dataset.res2)}}});
@@ -803,21 +820,18 @@ function drawCave(){
   const surfH=`<div class="cvsurf ${night?'night':''}"><span class="sun">${night?'🌙':'☀️'}</span>${cl}<div class="cvground"></div><span class="cvhatch"><img src="assets/valvdorr.webp" alt="" width="84"></span>${surf}<span class="warn">${ok?'✅ Försvaret håller':'⚠️ Försvaret är svagt!'}${s.mission_kind?' · 🧭 hjälparen är ute':''}</span></div>`;
   const nx=s.depth+1,dc=[Math.round(30*Math.pow(nx,1.5)),5*nx,0];
   const T=(k,t)=>`<button role="tab" data-tab="${k}" class="${caveTab===k?'on':''}">${t}</button>`;
-  root.innerHTML=`${brand}
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><button class="btn sm ghost" id="cvback" style="width:auto;margin:0">‹ Hem</button><h2 style="margin:0;flex:1;font-size:20px">⛏️ ${esc(s.cave_name)}</h2><button class="btn sm ghost" id="cvren" style="width:auto;margin:0" aria-label="Byt namn">✏️</button></div>
-    <div class="fshud" id="cvhud">${hudHtml()}</div><div id="cvwarn">${warnHtml()}</div>
-    <div style="display:flex;gap:8px;margin:0 0 10px"><button class="btn sm" id="cvmkt" style="margin:0;background:var(--gold);color:#2b2200;width:auto;padding:8px 16px">🤝 Torget</button></div>
+  const fsOk=!!(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen);
+  root.innerHTML=`<div class="cvtop"><div class="cvhead"><button class="btn sm ghost" id="cvback" style="width:auto;margin:0">‹ Hem</button><h2>⛏️ ${esc(s.cave_name)}</h2>${fsOk?'<button class="btn sm ghost" id="cvfs" style="width:auto;margin:0" aria-label="Helskärm">⛶</button>':''}<button class="btn sm ghost" id="cvren" style="width:auto;margin:0" aria-label="Byt namn">✏️</button></div><div class="fshud" id="cvhud">${hudHtml()}</div></div><div id="cvwarn">${warnHtml()}</div>
     ${surfH}<div class="fsvault"><div class="fsshaft"><div class="fscab"></div></div><div class="fsgrid">${floors.join('')}</div></div>
-    <button class="cvdig" id="cvdig" style="margin-top:-2px">⛏️ Gräv en våning till · ${costTxt(dc)}</button>
-    <div class="cvtabs" role="tablist">${T('res','👥 Invånare')}${T('help','👷 Hjälpare')}${T('atk','⚔️ Försvar')}</div>
-    <div class="cvbox" id="cvtab">${tabHtml()}</div>`;
+    <button class="cvdig" id="cvdig">⛏️ Gräv en våning till · ${costTxt(dc)}</button>
+    <div class="cvdock"><button data-dock="res">👥<small>Invånare</small></button><button data-dock="help">👷<small>Hjälpare</small></button><button data-dock="atk">⚔️<small>Försvar</small></button><button id="cvmkt">🤝<small>Torget</small></button></div>`;
+  const fsb=document.getElementById('cvfs');if(fsb)fsb.onclick=()=>{try{if(document.fullscreenElement||document.webkitFullscreenElement)(document.exitFullscreen||document.webkitExitFullscreen).call(document);else(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen).call(document.documentElement)}catch(e){}};
   document.getElementById('cvback').onclick=()=>{clearInterval(caveT);go('home')};
   document.getElementById('cvren').onclick=()=>{caveSheet(`<h2>Byt namn</h2><label>Grottans namn</label><input id="cn1" maxlength="24" value="${esc(s.cave_name)}"><label>Hjälparens namn</label><input id="cn2" maxlength="20" value="${esc(s.helper_name)}"><button class="btn" id="cnok">Spara</button><button class="btn ghost" id="cnx">Stäng</button>`);
     document.getElementById('cnx').onclick=closeCaveSheet;document.getElementById('cnok').onclick=()=>caveCall('cave_rename',{p_cave:document.getElementById('cn1').value,p_helper:document.getElementById('cn2').value})};
   document.getElementById('cvdig').onclick=()=>caveCall('cave_dig');
   document.getElementById('cvmkt').onclick=openMarket;updMarketBadge();if(!cvOff)loadOffers().then(updMarketBadge);
-  root.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{caveTab=b.dataset.tab;root.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('on',x===b));document.getElementById('cvtab').innerHTML=tabHtml();bindTab()});
-  bindTab();
+  root.querySelectorAll('[data-dock]').forEach(b=>b.onclick=()=>openTab(b.dataset.dock));
   root.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>openBuild(...b.dataset.slot.split(',').map(Number)));
   root.querySelectorAll('[data-room]').forEach(b=>{b.onclick=()=>openRoom(+b.dataset.room);b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRoom(+b.dataset.room)}}});
   caveSig=caveSigOf();caveFlag='';clearInterval(caveT);caveT=setInterval(tickCave,1000);
@@ -912,7 +926,7 @@ function tickCave(){
   if(caveN%10===0){const w=document.getElementById('cvwarn');if(w)w.innerHTML=warnHtml()}
   const t=document.getElementById('cvtime');
   if(s.mission_kind){const end=new Date(s.mission_start).getTime()+s.mission_min*60000,left=end-cnow();
-    if(left<=0&&t&&caveFlag!=='m'){caveFlag='m';if(!document.getElementById('cvov')){document.getElementById('cvtab').innerHTML=tabHtml();bindTab()}return}
+    if(left<=0&&t&&caveFlag!=='m'){caveFlag='m';const ct=document.getElementById('cvtab');if(ct){ct.innerHTML=tabHtml();bindTab()}return}
     if(t)t.textContent=fmtT(left);const b=document.getElementById('cvbar');if(b)b.style.width=Math.min(100,100-left/(s.mission_min*600))+'%'}
   const ar=document.getElementById('cvarr');if(ar)ar.textContent=fmtT(new Date(s.next_arrival_at).getTime()-cnow());
   const atk=new Date(s.next_attack_at).getTime()-cnow(),a=document.getElementById('cvatk');if(a)a.textContent=fmtT(atk);
@@ -970,7 +984,7 @@ function openNewOffer(){
 /* ---------- SHELL ---------- */
 const NAV=[['home','🏠','Hem'],['play','🎴','Spela'],['friends','👥','Vänner'],['top','🏆','Topplista'],['profile','🙂','Profil']];
 function go(p){page=p;notice=null;searchRes=null;searchQ='';if(p==='play')playView='menu';draw();window.scrollTo(0,0)}
-function draw(){
+function draw(){document.body.classList.toggle('cvfull',page==='cave');
   nav.hidden=false;
   navin.innerHTML=NAV.map(([k,ic,l])=>`<button data-p="${k}" class="${page===k?'on':''}" aria-label="${l}"><span class="ic">${ic}</span>${l}${k==='friends'&&incoming.length?`<span class="dot">${incoming.length}</span>`:''}</button>`).join('');
   navin.querySelectorAll('button').forEach(b=>b.onclick=()=>go(b.dataset.p));
