@@ -408,6 +408,7 @@
   .cvsheet .btn{margin-top:8px}.cvgrp{margin:14px 0 4px;font-weight:800;font-size:14px}
   .cvopt{display:flex;align-items:center;gap:10px;width:100%;border:none;border-radius:14px;background:var(--surface);padding:12px;margin-bottom:8px;font-family:inherit;font-size:14px;text-align:left;color:var(--ink);cursor:pointer;box-shadow:0 3px 8px var(--shadow)}.cvopt .oe{font-size:30px}.cvopt small{display:block;opacity:.7}
   .cvopt[disabled]{opacity:.45}
+  .cvsheet select{width:100%;box-sizing:border-box;padding:10px 12px;border-radius:12px;border:1.5px solid var(--felt-edge);font-size:16px;font-family:inherit;margin:4px 0 8px;background:#fff;color:var(--ink)}
 </style>
 </head>
 <body>
@@ -558,7 +559,7 @@ async function boot(sess){
 }
 
 /* ---------- GROTTAN ---------- */
-let cave=null,caveT=null,caveSkew=0,caveFlag='';
+let cave=null,caveT=null,caveSkew=0,caveFlag='',caveN=0;
 const CK={workshop:{e:'🛠️',n:'Verkstad',d:'+10 % fynd per nivå',s:30,m:5},defense:{e:'🛡️',n:'Försvar',d:'+12 försvar per nivå',s:40,m:10},lounge:{e:'🛋️',n:'Vardagsrum',d:'Bara för det fina',s:15,m:0}};
 const CD={plant:['🪴','Växt'],lamp:['🕯️','Ljus'],rug:['🧶','Matta'],painting:['🖼️','Tavla'],statue:['🗿','Staty'],fish:['🐠','Fisk'],trophy:['🏆','Pokal'],orb:['🔮','Kristallkula'],crown:['👑','Krona']};
 const CC={sand:'#efe3c6',rose:'#f6c6d2',sky:'#bfe0f5',mint:'#c4ecd5',lilac:'#dccbf2',sun:'#fbe59a',coral:'#f9b7a0',night:'#4a5170'};
@@ -596,7 +597,7 @@ function drawCave(){
   const inv=cave.decor.length?cave.decor.map(d=>`<span>${CD[d.kind]?CD[d.kind][0]:'?'} ×${d.qty}</span>`).join(''):'<span style="opacity:.6">Inga än. Hjälparen kan hitta saker!</span>';
   root.innerHTML=`${brand}
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><button class="btn sm ghost" id="cvback" style="width:auto;margin:0">‹ Hem</button><h2 style="margin:0;flex:1;font-size:20px">⛏️ ${esc(s.cave_name)}</h2><button class="btn sm ghost" id="cvren" style="width:auto;margin:0" aria-label="Byt namn">✏️</button></div>
-    <div class="cvres"><span class="bgpill">🪨 ${s.stone}</span><span class="bgpill">⚙️ ${s.metal}</span><span class="bgpill">💎 ${s.crystal}</span></div>
+    <div class="cvres"><span class="bgpill">🪨 ${s.stone}</span><span class="bgpill">⚙️ ${s.metal}</span><span class="bgpill">💎 ${s.crystal}</span><button class="bgpill" id="cvmkt" style="border:none;cursor:pointer;font-family:inherit;font-size:14px;background:var(--gold);color:#2b2200">🤝 Torget</button></div>
     <div class="cvbox"><div class="cvhelper"><div class="hv">👷</div><div style="flex:1"><h3 style="margin:0">${esc(s.helper_name)}</h3><p style="margin:0">Nivå ${lvl}</p><div class="cvbar"><i style="width:${pct}%"></i></div></div></div>${mis}</div>
     ${atk}
     <div class="cvsky"><span>☁️</span><span>🌳</span><span>🏠</span><span>🌲</span><span>☁️</span></div><div class="cvgrass"></div>${floors.join('')}
@@ -609,6 +610,7 @@ function drawCave(){
   const cc=document.getElementById('cvcollect');if(cc)cc.onclick=async()=>{cc.disabled=true;const {data,error}=await caveCall('cave_collect');if(!error&&data)showFound(data)};
   const cr=document.getElementById('cvrecall');if(cr)cr.onclick=async()=>{cr.disabled=true;const {data,error}=await caveCall('cave_collect');if(!error&&data)showFound(data)};
   document.getElementById('cvdig').onclick=()=>caveCall('cave_dig');
+  document.getElementById('cvmkt').onclick=openMarket;updMarketBadge();if(!cvOff)loadOffers().then(updMarketBadge);
   root.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>{const [f,sl]=b.dataset.slot.split(',').map(Number);
     caveSheet(`<h2>Bygg ett rum</h2>${Object.entries(CK).map(([k,v])=>{const c=ccost(k,1);return `<button class="cvopt" data-k="${k}" ${canPay(c)?'':'disabled'}><span class="oe">${v.e}</span><span><b>${v.n}</b><small>${v.d}</small><small>${costTxt(c)}</small></span></button>`}).join('')}<button class="btn ghost" id="cbx">Stäng</button>`);
     document.getElementById('cbx').onclick=closeCaveSheet;
@@ -645,9 +647,53 @@ function tickCave(){
   if(s.mission_kind){const end=new Date(s.mission_start).getTime()+s.mission_min*60000,left=end-cnow(),t=document.getElementById('cvtime');
     if(left<=0&&t&&caveFlag!=='m'){caveFlag='m';if(!document.getElementById('cvov'))drawCave();return}
     if(t)t.textContent=fmtT(left);const b=document.getElementById('cvbar');if(b)b.style.width=Math.min(100,100-left/(s.mission_min*600))+'%'}
+  caveN=(typeof caveN==='number'?caveN:0)+1;if(caveN%30===0&&!document.getElementById('cvov'))loadOffers().then(updMarketBadge);
   const atk=new Date(s.next_attack_at).getTime()-cnow(),a=document.getElementById('cvatk');
   if(a)a.textContent=fmtT(atk);
   if(atk<=-1500&&caveFlag!=='a'){caveFlag='a';loadCave().then(()=>{if(page==='cave'&&!document.getElementById('cvov'))drawCave()})}
+}
+
+/* ---------- TORGET (handel mellan vänner) ---------- */
+let cvOff=null,cvMode='sell',cvDraft={to:'',a:'stone',aq:10,b:'coins',bq:20};
+const IT=Object.assign({stone:['🪨','Sten'],metal:['⚙️','Metall'],crystal:['💎','Kristall'],coins:['🪙','Mynt']},Object.fromEntries(Object.entries(CD)));
+const itx=(k,q)=>(IT[k]?IT[k][0]:'?')+' '+q+' '+(IT[k]?IT[k][1].toLowerCase():'');
+Object.assign(CERR,{not_friend:'Ni är inte vänner.',too_many:'Du har redan 5 öppna erbjudanden.',gone:'Erbjudandet finns inte längre.',own_offer:'Det är ditt eget erbjudande.',not_yours:'Det här erbjudandet är inte till dig.',bad_item:'Välj två olika saker.',bad_qty:'Fel antal (1–999, mynt max 500).'});
+function haveItem(k){const s=cave.state;return k==='coins'?(wallet||0):k==='stone'?s.stone:k==='metal'?s.metal:k==='crystal'?s.crystal:((cave.decor.find(d=>d.kind===k)||{}).qty||0)}
+async function loadOffers(){const {data}=await db.rpc('cave_offers');if(data)cvOff=data;return data}
+function updMarketBadge(){const b=document.getElementById('cvmkt');if(b&&cvOff)b.innerHTML='🤝 Torget'+(cvOff.incoming.length?` <span style="display:inline-block;margin-left:4px;background:var(--red);color:#fff;font-size:11px;min-width:18px;border-radius:9px;padding:1px 5px">${cvOff.incoming.length}</span>`:'')}
+async function tradeCall(fn,args,reopen){const {error}=await db.rpc(fn,args);if(error)caveToast(CERR[(error.message||'').trim()]||'Något gick fel.');else caveToast('Klart! ✅');await Promise.all([loadCave(),loadOffers(),loadWallet()]);if(page==='cave'){drawCave();reopen()}}
+async function openMarket(){
+  await Promise.all([loadOffers(),loadCave()]);if(!cvOff)return;
+  const o=cvOff;
+  const inc=o.incoming.length?o.incoming.map(x=>`<div class="cvbox" style="margin-bottom:8px"><b>${esc(x.avatar||'')} ${esc(x.name)}</b>${x.direct?' <small>(till dig)</small>':''}<p>Du får: <b>${itx(x.give_item,x.give_qty)}</b></p><p>Du ger: <b>${itx(x.want_item,x.want_qty)}</b> <small style="opacity:.6">(du har ${haveItem(x.want_item)})</small></p>
+    <div style="display:flex;gap:8px"><button class="btn sm" data-acc="${x.id}" style="margin:0" ${haveItem(x.want_item)>=x.want_qty?'':'disabled'}>Acceptera</button>${x.direct?`<button class="btn sm ghost" data-no="${x.id}" style="margin:0">Nej</button>`:''}</div></div>`).join(''):'<p style="opacity:.65;font-size:14px">Inga erbjudanden från vänner just nu.</p>';
+  const mine=o.mine.length?o.mine.map(x=>`<div class="cvbox" style="margin-bottom:8px"><p>Du ger: <b>${itx(x.give_item,x.give_qty)}</b></p><p>Du vill ha: <b>${itx(x.want_item,x.want_qty)}</b></p><p style="font-size:12px;opacity:.7">${x.to_name?'Till '+esc(x.to_name):'Till alla vänner'}</p><button class="btn sm ghost" data-can="${x.id}" style="margin:0">Ta tillbaka</button></div>`).join(''):'<p style="opacity:.65;font-size:14px">Du har inga öppna erbjudanden.</p>';
+  const dn=o.done.length?o.done.map(x=>`<p style="font-size:13px;margin:3px 0">${x.mine?'Sålde':'Köpte'} ${x.mine?itx(x.give_item,x.give_qty):itx(x.give_item,x.give_qty)} ${x.mine?'till':'av'} ${esc(x.name||'?')} för ${itx(x.want_item,x.want_qty)}</p>`).join(''):'<p style="opacity:.65;font-size:14px">Inga affärer än.</p>';
+  caveSheet(`<h2>🤝 Torget</h2><p style="opacity:.75;font-size:14px;margin:0 0 4px">Byt och sälj saker med dina vänner. Det du erbjuder läggs åt sidan tills någon tackar ja.</p>
+    <button class="btn" id="mnew">➕ Nytt erbjudande</button>
+    <div class="cvgrp">Till dig (${o.incoming.length})</div>${inc}<div class="cvgrp">Dina öppna (${o.mine.length}/5)</div>${mine}<div class="cvgrp">Senaste affärer</div>${dn}<button class="btn ghost" id="mx">Stäng</button>`);
+  const q=document.querySelector('#cvov');
+  q.querySelector('#mx').onclick=closeCaveSheet;q.querySelector('#mnew').onclick=openNewOffer;
+  q.querySelectorAll('[data-acc]').forEach(b=>b.onclick=()=>{b.disabled=true;tradeCall('cave_offer_accept',{p_id:+b.dataset.acc},openMarket)});
+  q.querySelectorAll('[data-no]').forEach(b=>b.onclick=()=>{b.disabled=true;tradeCall('cave_offer_cancel',{p_id:+b.dataset.no},openMarket)});
+  q.querySelectorAll('[data-can]').forEach(b=>b.onclick=()=>{b.disabled=true;tradeCall('cave_offer_cancel',{p_id:+b.dataset.can},openMarket)});
+}
+function openNewOffer(){
+  const d=cvDraft,sell=cvMode==='sell';
+  const opts=sel=>Object.keys(IT).map(k=>`<option value="${k}" ${sel===k?'selected':''}>${IT[k][0]} ${IT[k][1]} (har ${haveItem(k)})</option>`).join('');
+  caveSheet(`<h2>Nytt erbjudande</h2>
+    <div class="tabs" style="margin-bottom:8px"><button type="button" data-m="sell" class="${sell?'on':''}">Jag säljer</button><button type="button" data-m="ask" class="${sell?'':'on'}">Jag vill ha</button></div>
+    <label>${sell?'Jag säljer':'Jag vill ha'}</label><select id="oa">${opts(d.a)}</select><input id="oaq" type="number" min="1" max="999" inputmode="numeric" value="${d.aq}">
+    <label>${sell?'Jag vill ha (priset)':'Jag betalar med'}</label><select id="ob">${opts(d.b)}</select><input id="obq" type="number" min="1" max="999" inputmode="numeric" value="${d.bq}">
+    <label>Till vem?</label><select id="oto"><option value="">Alla vänner</option>${friends.map(f=>`<option value="${f.id}" ${d.to===f.id?'selected':''}>${esc(f.avatar||'')} ${esc(f.username)}</option>`).join('')}</select>
+    <p style="font-size:12px;opacity:.7">${sell?'Det du säljer':'Det du betalar med'} läggs åt sidan tills erbjudandet tas emot eller dras tillbaka. Mynt: max 500.</p>
+    <button class="btn" id="osend">Skicka erbjudande</button><button class="btn ghost" id="obk">Tillbaka</button>`);
+  const q=document.querySelector('#cvov'),save=()=>{cvDraft={to:q.querySelector('#oto').value,a:q.querySelector('#oa').value,aq:+q.querySelector('#oaq').value||1,b:q.querySelector('#ob').value,bq:+q.querySelector('#obq').value||1}};
+  q.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{save();cvMode=b.dataset.m;openNewOffer()});
+  q.querySelector('#obk').onclick=openMarket;
+  q.querySelector('#osend').onclick=()=>{save();const x=cvDraft,A=sell?[x.a,x.aq]:[x.b,x.bq],B=sell?[x.b,x.bq]:[x.a,x.aq];
+    if(x.a===x.b){caveToast(CERR.bad_item);return}
+    tradeCall('cave_offer_create',{p_to:x.to||null,p_give:A[0],p_give_qty:A[1],p_want:B[0],p_want_qty:B[1]},openMarket)};
 }
 
 /* ---------- SHELL ---------- */
