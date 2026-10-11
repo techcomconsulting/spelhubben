@@ -462,6 +462,27 @@
   .fsbub{position:absolute;top:20px;left:50%;transform:translateX(-50%);z-index:6;background:#fff;border:2px solid #ffb020;border-radius:999px;padding:2px 9px;font-size:13px;font-weight:800;color:#2b2200;animation:cvbob 1s ease-in-out infinite;cursor:pointer;font-family:inherit;white-space:nowrap;box-shadow:0 3px 8px rgba(0,0,0,.4)}
   .fsdoor{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);width:54px;height:46px;border-radius:50% 50% 4px 4px;background:radial-gradient(circle at 50% 40%,#e9c548 0 28%,#9a8a3a 30% 38%,#4b5a63 40%);border:3px solid #2b3338;z-index:2;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#2b3338}
   @media (prefers-reduced-motion:reduce){.fscab,.fsbub{animation:none!important}}
+  .fsg .cvbar{background:#0e1718;height:6px;margin:3px 0}.fsg .cvbar i{background:linear-gradient(90deg,#ffd23f,#ff9f1c)}
+  .fsg[data-res=food] .cvbar i{background:linear-gradient(90deg,#8bd450,#3aa655)}.fsg[data-res=water] .cvbar i{background:linear-gradient(90deg,#7fd6ff,#2e8fe0)}.fsg[data-res=metal] .cvbar i{background:linear-gradient(90deg,#9fb4c7,#6c8aa6)}.fsg[data-res=crystal] .cvbar i{background:linear-gradient(90deg,#9be7ff,#4da3ff)}.fsg[data-res=medicine] .cvbar i{background:linear-gradient(90deg,#ff9fb0,#e0486a)}.fsg[data-res=research] .cvbar i{background:linear-gradient(90deg,#c9a5ff,#8a5cf0)}
+  .fsg .rr{display:block;font-size:10px;font-weight:700;opacity:.7;min-height:12px}.fsg.low{animation:fslow 1.4s ease-in-out infinite}.fsg.low b{color:#ff8a7a}
+  @keyframes fslow{50%{opacity:.55}}
+  .fswarn{background:#fff3cd;color:#5c4400;border-radius:12px;padding:8px 12px;font-size:13px;font-weight:700;margin:0 0 6px;border:1.5px solid #f0c24b}
+  .cvres2{display:flex;gap:10px;align-items:center;padding:8px;border-radius:14px;background:var(--cream-dim);margin-bottom:6px;cursor:pointer}
+  .cvav{width:40px;height:52px;border-radius:12px;background:var(--surface);display:flex;align-items:center;justify-content:center;flex:none}.cvav.big{width:70px;height:90px}
+  .cvbar.good i{background:linear-gradient(90deg,#8bd450,#3aa655)}.cvbar.bad i{background:linear-gradient(90deg,#ff9a7a,#e0482a)}
+  .cvtabs{display:flex;gap:6px;margin:12px 0 8px}.cvtabs button{flex:1;border:none;border-radius:999px;padding:10px 6px;font-family:inherit;font-weight:800;font-size:13px;background:var(--cream-dim);color:var(--ink);cursor:pointer;min-height:44px}.cvtabs button.on{background:#3a2a1d;color:#ffe9b8}
+  .fsroom .stn{position:absolute;bottom:20px;z-index:2}.fsroom .stn .bdg{position:absolute;right:-8px;top:0;font-style:normal;font-size:12px}
+  .fsroom.off{filter:brightness(.55) saturate(.7)}.fsroom .offi{position:absolute;left:50%;top:40%;transform:translateX(-50%);font-size:20px;z-index:5}
+  .fsroom .need,.fsroom .okc{position:absolute;right:4px;top:19px;z-index:4;font-size:10px;font-weight:800;border-radius:999px;padding:0 6px}.fsroom .need{background:#ffd23f;color:#5c3b00;animation:cvbob 1s ease-in-out infinite}.fsroom .okc{background:rgba(255,255,255,.7);color:#234}
+  .fsroom .cvw{bottom:20px}.rsv{display:block;overflow:visible}
+  .rsv .a1,.rsv .a2,.rsv .l1,.rsv .l2{transform-box:fill-box;transform-origin:50% 5%}
+  .cvw .rsv .l1{animation:rsl .7s ease-in-out infinite}.cvw .rsv .l2{animation:rsl .7s ease-in-out infinite reverse}.cvw .rsv .a1{animation:rsl .7s ease-in-out infinite reverse}.cvw .rsv .a2{animation:rsl .7s ease-in-out infinite}
+  @keyframes rsl{0%,100%{transform:rotate(-18deg)}50%{transform:rotate(18deg)}}
+  .rsv.work .a1{animation:rsw .9s ease-in-out infinite}@keyframes rsw{0%,100%{transform:rotate(-30deg)}50%{transform:rotate(35deg)}}
+  .rsv.sit{opacity:.8}
+  .stline{display:grid;grid-template-columns:62px 1fr 30px;gap:8px;align-items:center;font-size:13px}.stline b{text-align:right}
+  .skgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:13px}.skgrid div{background:var(--cream-dim);border-radius:10px;padding:6px 10px;display:flex;justify-content:space-between}
+  @media (prefers-reduced-motion:reduce){.rsv *,.fsg.low,.fsroom .need{animation:none!important}}
 </style>
 </head>
 <body>
@@ -612,49 +633,115 @@ async function boot(sess){
 }
 
 /* ---------- GROTTAN ---------- */
-let cave=null,caveT=null,caveSkew=0,caveFlag='',caveN=0;
-const CK={workshop:{e:'🛠️',n:'Verkstad',d:'+10 % fynd per nivå',s:30,m:5},defense:{e:'🛡️',n:'Försvar',d:'+12 försvar per nivå',s:40,m:10},lounge:{e:'🛋️',n:'Vardagsrum',d:'Bara för det fina',s:15,m:0},dorm:{e:'🛏️',n:'Sovsal',d:'Rymmer 2 överlevande per nivå. De samlar sten, metall och mat.',s:25,m:3}};
+let cave=null,caveT=null,caveSkew=0,caveFlag='',caveN=0,caveTab='res',caveFetchAt=0,caveSig='',caveFirst=true;
+const CK={
+  power:{e:'⚡',n:'Kraftverk',d:'Producerar el. Alla andra rum drar el.',s:30,m:8,skill:'s_end',props:['⚡','🔋'],tint:'#f6e7a8'},
+  canteen:{e:'🍲',n:'Matsal',d:'Producerar mat åt alla.',s:25,m:3,skill:'s_agi',props:['🍲','🥕'],tint:'#f7d9b0'},
+  water:{e:'💧',n:'Vattenrening',d:'Renar vatten åt alla.',s:30,m:6,skill:'s_per',props:['🚰','💧'],tint:'#bfe3f5'},
+  dorm:{e:'🛏️',n:'Sovrum',d:'Plats åt 2 invånare per nivå. Nya överlevare söker skydd här.',s:25,m:3,skill:null,props:['🛏️','🛏️'],tint:'#d9d4f0'},
+  hospital:{e:'🏥',n:'Sjukhus',d:'Läker skadade (kostar medicin) och gör medicin.',s:40,m:10,skill:'s_int',props:['🩺','💊'],tint:'#e3f4ec'},
+  workshop:{e:'🛠️',n:'Verkstad',d:'Tillverkar byggmaterial och metall.',s:30,m:5,skill:'s_str',props:['🛠️','⚙️'],tint:'#e6d6c2'},
+  lab:{e:'🔬',n:'Laboratorium',d:'Ger forskningspoäng.',s:45,m:15,skill:'s_int',props:['🔬','🧪'],tint:'#d3e8f0'},
+  storage:{e:'📦',n:'Lager',d:'Ökar lagringsgränserna +50 % per nivå.',s:30,m:4,skill:null,props:['📦','🛢️'],tint:'#dad3c6'},
+  training:{e:'🏋️',n:'Träningsrum',d:'De som tränar här utvecklas snabbare.',s:35,m:6,skill:'s_end',props:['🏋️','🥊'],tint:'#f3d6d2'},
+  control:{e:'🖥️',n:'Kontrollrum',d:'+4 % produktion i hela basen per nivå.',s:50,m:20,skill:'s_cha',props:['🖥️','📡'],tint:'#cfdae9'},
+  defense:{e:'🛡️',n:'Försvarsrum',d:'Skyddar mot attacker.',s:40,m:10,skill:'s_per',props:['🛡️','🗡️'],tint:'#ddd2c2'},
+  comms:{e:'📻',n:'Kommunikation',d:'Fler överlevare söker sig hit.',s:40,m:12,skill:'s_cha',props:['📻','🛰️'],tint:'#dbe9d2'},
+  lounge:{e:'🛋️',n:'Vardagsrum',d:'Höjer humöret hos alla.',s:15,m:0,skill:null,props:['🛋️','📺'],tint:'#f2dee8'}
+};
+const SKILLS=[['s_str','Styrka','💪'],['s_per','Uppfattning','👁️'],['s_end','Uthållighet','🫀'],['s_int','Intelligens','🧠'],['s_agi','Smidighet','🤸'],['s_cha','Karisma','💬']];
 const CD={plant:['🪴','Växt'],lamp:['🕯️','Ljus'],rug:['🧶','Matta'],painting:['🖼️','Tavla'],statue:['🗿','Staty'],fish:['🐠','Fisk'],trophy:['🏆','Pokal'],orb:['🔮','Kristallkula'],crown:['👑','Krona']};
-const CC={sand:'#efe3c6',rose:'#f6c6d2',sky:'#bfe0f5',mint:'#c4ecd5',lilac:'#dccbf2',sun:'#fbe59a',coral:'#f9b7a0',night:'#4a5170'};
+const CC={sand:'',rose:'#f6c6d2',sky:'#bfe0f5',mint:'#c4ecd5',lilac:'#dccbf2',sun:'#fbe59a',coral:'#f9b7a0',night:'#4a5170'};
 const CMIS={kort:['5 min',5,'Snabbt'],medel:['1 timme',60,'Bättre fynd'],lang:['8 timmar',480,'Bäst fynd']};
-const CERR={no_funds:'Du har inte råd ännu.',level_too_low:'Hjälparen behöver nivå 2.',already_away:'Hjälparen är redan iväg.',slot_taken:'Platsen är upptagen.',max_level:'Redan högsta nivån.',max_depth:'Grottan kan inte bli djupare.',no_item:'Du har inte den saken.',bad_name:'Skriv ett namn (1–20 tecken).'};
-function ccost(k,l){const b=CK[k],f=Math.pow(l,1.6);return [Math.round(b.s*f),Math.round(b.m*f),l>=4?l-3:0]}
+const CERR={no_funds:'Du har inte råd ännu.',level_too_low:'Hjälparen behöver nivå 2.',already_away:'Hjälparen är redan iväg.',slot_taken:'Platsen är upptagen.',max_level:'Redan högsta nivån.',max_depth:'Grottan kan inte bli djupare.',no_item:'Du har inte den saken.',bad_name:'Skriv ett namn (1–20 tecken).',injured:'Skadade invånare kan inte arbeta. Låt dem läka.',room_full:'Rummet är fullt bemannat.',no_staff:'Det rummet behöver ingen personal.',dorm_needed:'Du behöver plats åt alla invånare. Bygg ett annat sovrum först.',bad_slot:'Fel plats.',no_room:'Rummet finns inte.'};
+const RESM=[['power','⚡','El'],['food','🍖','Mat'],['water','💧','Vatten'],['stone','🪨','Byggmat.'],['metal','⚙️','Metall'],['medicine','💊','Medicin'],['crystal','💎','Kristall'],['research','🔬','Forskn.']];
+const SKN=['#f6d3b3','#eab98b','#c98e5f','#a46a43','#7a4a2c','#5a3520'],HCL=['#2b1d12','#5a3a1e','#a0522d','#d9b36c','#c9c9c9','#b03a2e'],SHC=['#e74c3c','#3498db','#27ae60','#f1c40f','#9b59b6','#e67e22','#16a085','#7f8c8d'];
+function ccost(k,l){const b=CK[k]||CK.lounge,f=Math.pow(l,1.6);return [Math.round(b.s*f),Math.round(b.m*f),l>=4?l-3:0]}
 const cnow=()=>Date.now()+caveSkew;
 function fmtT(ms){ms=Math.max(0,ms);const s=Math.ceil(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h>0?h+':'+String(m).padStart(2,'0')+':'+String(s%60).padStart(2,'0'):m+':'+String(s%60).padStart(2,'0')}
+function fmtH(h){if(h>=1){const m=Math.round((h-Math.floor(h))*60);return Math.floor(h)+' tim'+(m?' '+m+' min':'')}return Math.max(1,Math.round(h*60))+' min'}
 function caveToast(m){const t=el('div',{class:'reminder-toast'},m);document.body.appendChild(t);setTimeout(()=>t.remove(),3400)}
-async function loadCave(){const {data,error}=await db.rpc('cave_get');if(error||!data)return false;cave=data;caveSkew=new Date(data.now)-Date.now();return true}
+function caveSigOf(){return cave?JSON.stringify([cave.rooms.map(r=>[r.id,r.kind,r.level,r.color,r.decor,r.floor,r.slot]),cave.residents.map(r=>[r.id,r.room_id,r.status,r.name,r.level]),cave.state.depth,cave.state.mission_kind,!!cave.state.mission_start]):''}
+async function loadCave(){const {data,error}=await db.rpc('cave_get');if(error||!data)return false;cave=data;caveSkew=new Date(data.now)-Date.now();caveFetchAt=Date.now();return true}
 function closeCaveSheet(){const o=document.getElementById('cvov');if(o)o.remove()}
 async function caveCall(fn,args,reopen){const {data,error}=await db.rpc(fn,args||{});if(error)caveToast(CERR[(error.message||'').trim()]||'Något gick fel.');await loadCave();closeCaveSheet();if(page==='cave'){drawCave();if(reopen)reopen()}return {data,error}}
 function caveSheet(inner){closeCaveSheet();const o=el('div',{class:'overlay',id:'cvov'});o.innerHTML=`<div class="sheet cvsheet">${inner}</div>`;o.onclick=e=>{if(e.target===o)closeCaveSheet()};document.body.appendChild(o);return o}
 function costTxt(c){return `🪨 ${c[0]}${c[1]?` · ⚙️ ${c[1]}`:''}${c[2]?` · 💎 ${c[2]}`:''}`}
 function canPay(c){const s=cave.state;return s.stone>=c[0]&&s.metal>=c[1]&&s.crystal>=c[2]}
+/* --- invånare som SVG-figurer --- */
+function resSvg(l,w,cls){
+  l=l||{};const sk=SKN[(l.skin||0)%6],hc=HCL[(l.hc||0)%6],sh=SHC[(l.shirt||0)%8],hs=(l.hair||0)%5;
+  const hair=['',`<path d="M6 8.5 Q12 .5 18 8.5 Z" fill="${hc}"/>`,`<path d="M5.5 10 Q12 -1 18.5 10 L18.5 16 L16.5 16 L16.5 9.5 L7.5 9.5 L7.5 16 L5.5 16 Z" fill="${hc}"/>`,`<path d="M6 9 L7.5 2 L10.5 6.5 L12.5 1 L14.5 6.5 L17.5 2.5 L18 9 Z" fill="${hc}"/>`,`<path d="M5.5 9 Q12 -2 18.5 9 Z" fill="#d4a017"/><rect x="5" y="8" width="14" height="2" rx="1" fill="#a67c00"/>`][hs];
+  return `<svg class="rsv ${cls||''}" width="${w}" height="${Math.round(w*40/24)}" viewBox="0 0 24 40" aria-hidden="true"><g class="a2"><rect x="3" y="17" width="4" height="12" rx="2" fill="${sh}"/></g><g class="l1"><rect x="7" y="28" width="4.5" height="11" rx="2" fill="#34495e"/></g><g class="l2"><rect x="12.5" y="28" width="4.5" height="11" rx="2" fill="#2c3e50"/></g><rect x="6" y="16" width="12" height="14" rx="4" fill="${sh}"/><circle cx="12" cy="9.5" r="6" fill="${sk}"/>${hair}<circle cx="10" cy="10" r=".9" fill="#222"/><circle cx="14" cy="10" r=".9" fill="#222"/><path d="M10.2 12.6 Q12 14 13.8 12.6" stroke="#7a3b1e" stroke-width=".8" fill="none"/><g class="a1"><rect x="17" y="17" width="4" height="12" rx="2" fill="${sh}"/></g></svg>`}
+function roomFx(k,L,f){
+  const p=Math.round((f==null?1:f)*100)+'%';
+  return ({power:`+${24*L} ⚡/tim`,canteen:`+${16*L} 🍖/tim`,water:`+${16*L} 💧/tim`,workshop:`+${8*L} 🪨 och +${3*L} ⚙️ /tim`,hospital:`+${(1.5*L).toFixed(1)} 💊/tim · läker`,lab:`+${2*L} 🔬/tim`,defense:`+${12*L} försvar`,control:`+${4*L} % produktion`,comms:`överlevare var ${(3/(1+0.25*L)).toFixed(1)}:e timme`,storage:`+${50*L} % lager`,lounge:`+${5*L} humör`,dorm:`plats åt ${2*L}`,training:`3× erfarenhet`}[k]||'')}
+function bar(v,cls){return `<div class="cvbar ${cls||''}"><i style="width:${Math.max(0,Math.min(100,Math.round(v)))}%"></i></div>`}
+/* --- resurs-HUD med framräkning --- */
+function projRes(k){const s=cave.state,caps=s.caps||{},rt=(s.rates||{})[k]||0,base=s[k]||0,h=(Date.now()-caveFetchAt)/3600000,cap=caps[k]||999;return k==='crystal'?base:Math.max(0,Math.min(cap,base+rt*h))}
+function hudHtml(){
+  const s=cave.state,caps=s.caps||{};
+  return RESM.map(([k,e,n])=>{const v=projRes(k),rt=(s.rates||{})[k]||0,cap=caps[k]||(k==='crystal'?20:999),eta=rt<0?v/-rt:Infinity,low=v<=0||eta<6||(k!=='crystal'&&v/cap<.12&&rt<=0);
+    return `<div class="fsg ${low?'low':''}" data-res="${k}"><b>${e} <span class="rv">${Math.floor(v)}</span></b>${bar(v/cap*100)}<span class="rr">${k==='crystal'?'':(rt>0?'+':'')+(Math.abs(rt)<10?rt.toFixed(1):Math.round(rt))+'/tim'}</span></div>`}).join('')
+}
+function warnHtml(){
+  const s=cave.state,w=[];
+  [['power','El','⚡'],['food','Mat','🍖'],['water','Vatten','💧']].forEach(([k,n,e])=>{const v=projRes(k),rt=(s.rates||{})[k]||0;
+    if(v<=0)w.push(`🚨 ${n} är slut! Invånarna mår dåligt.`);else if(rt<0&&v/-rt<12)w.push(`⚠️ ${n} tar slut om ${fmtH(v/-rt)}.`)});
+  const inj=cave.residents.filter(r=>r.status==='injured').length;if(inj)w.push(`🩹 ${inj} skadad${inj>1?'e':''} – bygg och bemanna ett Sjukhus.`);
+  const idle=cave.residents.filter(r=>!r.room_id&&r.status==='ok').length;if(idle)w.push(`👤 ${idle} invånare saknar jobb. Tryck på ett rum och sätt dit dem.`);
+  return w.map(x=>`<div class="fswarn">${x}</div>`).join('')
+}
+function jobName(r){const rm=r.room_id&&cave.rooms.find(x=>x.id===r.room_id);return rm?(CK[rm.kind]?CK[rm.kind].n:rm.name):'Ledig'}
+function resListHtml(){
+  if(!cave.residents.length)return '<p class="empty">Inga invånare ännu. Bygg ett Sovrum så söker överlevare skydd här.</p>';
+  return cave.residents.map(r=>{const mood=r.mood>=70?'😊':r.mood>=40?'😐':'😞';
+    return `<div class="cvres2" data-res2="${r.id}" role="button" tabindex="0"><div class="cvav">${resSvg(r.look,30,'')}</div><div style="flex:1;min-width:0"><b>${esc(r.name)}</b> <small>nivå ${r.level}</small><div style="font-size:12px;opacity:.75">${r.status==='injured'?'🩹 Skadad':esc(jobName(r))} ${mood}${r.hunger>=60?' 🍖':''}${r.thirst>=60?' 💧':''}</div>${bar(r.health,r.health<40?'bad':'good')}</div></div>`}).join('')
+}
+const rtint=r=>CC[r.color]||(CK[r.kind]||CK.lounge).tint;
+function cvRoomHtml(r,f,sl,pw){
+  const s=cave.state;
+  if(!r||r.kind==='ruin')return `<button class="fsempty" data-slot="${f},${sl}"><span style="font-size:24px">${r?'🧱':'＋'}</span>${r?'Ruin · bygg om':'Bygg'}</button>`;
+  const k=CK[r.kind]||CK.lounge,mine=cave.residents.filter(x=>x.room_id===r.id&&x.status==='ok');
+  let ppl='';
+  if(r.slots>0){ppl=mine.map((x,i)=>`<span class="stn" style="left:${26+i*30}%">${resSvg(x.look,22,'work')}</span>`).join('')}
+  else{
+    const dorms=cave.rooms.filter(q=>q.kind==='dorm'),home=dorms.length?dorms:cave.rooms.filter(q=>q.kind==='lounge');
+    const idle=cave.residents.filter(x=>!x.room_id||x.status!=='ok');
+    const my=idle.filter((x,i)=>home.length&&home[i%home.length].id===r.id);
+    ppl=my.map((x,i)=>{const d=11+(x.id*3)%7;return x.status==='injured'?`<span class="stn" style="left:${22+i*26}%">${resSvg(x.look,22,'sit')}<em class="bdg">🩹</em></span>`:`<span class="cvw" style="--d:${d}s;--dl:-${(x.id*2.7)%d}s"><i>${resSvg(x.look,22,'')}</i></span>`}).join('')}
+  const warn=r.slots>0&&mine.length<r.slots?`<span class="need">${mine.length}/${r.slots}</span>`:(r.slots>0?`<span class="okc">${mine.length}/${r.slots}</span>`:'');
+  return `<div class="fsroom ${r.color==='night'?'dark':''} ${pw?'':'off'}" role="button" tabindex="0" data-room="${r.id}" aria-label="${esc(r.name)}"><div class="rw" style="background-color:${rtint(r)}"></div><div class="rf"></div><div class="rh"><span>${esc(r.name)}</span><span style="color:#ffd23f">${'★'.repeat(r.level)}</span></div>${warn}${r.decor?`<span class="rd">${CD[r.decor]?CD[r.decor][0]:''}</span>`:''}<span class="fp" style="left:5px">${k.props[0]}</span><span class="fp" style="right:5px;font-size:22px">${k.props[1]||''}</span>${roomFxIcon(r,pw)}${ppl}</div>`}
+function roomFxIcon(r,pw){return pw?'':'<span class="offi">🔌</span>'}
+function tabHtml(){
+  const s=cave.state;
+  if(caveTab==='res'){
+    const n=cave.residents.length,arr=new Date(s.next_arrival_at).getTime()-cnow();
+    return `<p style="margin:0 0 8px;font-size:13px;opacity:.8">👥 ${n}/${s.capacity} platser i sovrum.${s.capacity===0?' Bygg ett 🛏️ Sovrum så kommer överlevare.':n<s.capacity?` Nästa söker sig hit om <b id="cvarr">${fmtT(arr)}</b>.`:' Sovrummen är fulla.'}</p><div id="cvrl">${resListHtml()}</div>`}
+  if(caveTab==='help'){
+    const lvl=s.helper_level,x0=10*(lvl-1)*(lvl-1),x1=10*lvl*lvl,pct=Math.max(0,Math.min(100,Math.round((s.helper_xp-x0)/(x1-x0)*100)));let mis='';
+    if(s.mission_kind){const end=new Date(s.mission_start).getTime()+s.mission_min*60000,left=end-cnow();
+      mis=left<=0?`<p><b>${esc(s.helper_name)} är tillbaka!</b></p><button class="btn" id="cvcollect">🎁 Ta emot fynd</button>`
+      :`<p>Är ute på uppdrag (${CMIS[s.mission_kind][0]}). Hemma om <b id="cvtime">${fmtT(left)}</b></p><div class="cvbar"><i id="cvbar" style="width:${Math.min(100,100-left/(s.mission_min*600))}%"></i></div><button class="btn sm ghost" id="cvrecall">Kalla hem nu (halva fyndet)</button>`}
+    else mis=`<p>Skicka iväg ${esc(s.helper_name)}. Längre uppdrag ger bättre fynd!</p><div class="cvmis">${Object.entries(CMIS).map(([k,v])=>`<button data-mis="${k}" ${k==='lang'&&lvl<2?'disabled':''}>${v[0]}<small>${k==='lang'&&lvl<2?'Nivå 2':v[2]}</small></button>`).join('')}</div>`;
+    const inv=cave.decor.length?cave.decor.map(d=>`<span>${CD[d.kind]?CD[d.kind][0]:'?'} ×${d.qty}</span>`).join(''):'<span style="opacity:.6">Inga pynt-saker än.</span>';
+    return `<div class="cvhelper"><div class="hv">👷</div><div style="flex:1"><h3 style="margin:0">${esc(s.helper_name)}</h3><p style="margin:0">Nivå ${lvl}</p><div class="cvbar"><i style="width:${pct}%"></i></div></div></div>${mis}<div class="cvgrp">🎨 Dina pynt-saker</div><div class="cvdec">${inv}</div>`}
+  const atkMs=new Date(s.next_attack_at).getTime()-cnow(),ok=s.defense>=s.next_str,log=(s.log||[]).slice(0,3);
+  return `<h3 style="margin:0 0 6px">⚔️ Nästa attack om <span id="cvatk">${fmtT(atkMs)}</span></h3><p>Fiendens styrka: <b>${s.next_str}</b> · Ditt försvar: <b>${s.defense}</b> ${ok?'✅':'⚠️'}</p><p style="opacity:.75;font-size:13px">${ok?'Du klarar nästa attack!':'Bygg och bemanna 🛡️ Försvarsrum, annars förlorar du en fjärdedel av sten och metall, och några invånare skadas.'}</p>${log.map(l=>`<p style="font-size:13px">${l.win?`✅ Vann: +${l.stone} 🪨 +${l.metal} ⚙️`:`❌ Förlorade: ${l.stone} 🪨 ${l.metal} ⚙️`}</p>`).join('')}`}
+function bindTab(){
+  const q=s=>document.querySelector('#cvtab '+s),qa=s=>document.querySelectorAll('#cvtab '+s);
+  qa('[data-mis]').forEach(b=>b.onclick=async()=>{b.disabled=true;await caveCall('cave_send',{p_kind:b.dataset.mis})});
+  const cc=q('#cvcollect');if(cc)cc.onclick=async()=>{cc.disabled=true;const {data,error}=await caveCall('cave_collect');if(!error&&data)showFound(data)};
+  const cr=q('#cvrecall');if(cr)cr.onclick=async()=>{cr.disabled=true;const {data,error}=await caveCall('cave_collect');if(!error&&data)showFound(data)};
+  qa('[data-res2]').forEach(b=>{b.onclick=()=>openRes(+b.dataset.res2);b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRes(+b.dataset.res2)}}});
+}
 function drawCave(){
   if(!cave){root.innerHTML=`${brand}<p class="empty">Laddar grottan…</p>`;loadCave().then(ok=>{if(page!=='cave')return;if(ok)drawCave();else{root.innerHTML=`${brand}<p class="empty">Kunde inte öppna grottan.</p><button class="btn" id="cvback">Tillbaka</button>`;document.getElementById('cvback').onclick=()=>go('home')}});return}
-  const s=cave.state,lvl=s.helper_level,x0=10*(lvl-1)*(lvl-1),x1=10*lvl*lvl,pct=Math.max(0,Math.min(100,Math.round((s.helper_xp-x0)/(x1-x0)*100)));
-  let mis='';
-  if(s.mission_kind){
-    const end=new Date(s.mission_start).getTime()+s.mission_min*60000,left=end-cnow();
-    mis=left<=0?`<p><b>${esc(s.helper_name)} är tillbaka!</b></p><button class="btn" id="cvcollect">🎁 Ta emot fynd</button>`
-      :`<p>Är ute på uppdrag (${CMIS[s.mission_kind][0]}). Hemma om <b id="cvtime">${fmtT(left)}</b></p><div class="cvbar"><i id="cvbar" style="width:${Math.min(100,100-left/(s.mission_min*600))}%"></i></div><button class="btn sm ghost" id="cvrecall">Kalla hem nu (halva fyndet)</button>`;
-  } else mis=`<p>Skicka iväg ${esc(s.helper_name)}. Längre uppdrag ger bättre fynd!</p><div class="cvmis">${Object.entries(CMIS).map(([k,v])=>`<button data-mis="${k}" ${k==='lang'&&lvl<2?'disabled':''}>${v[0]}<small>${k==='lang'&&lvl<2?'Nivå 2':v[2]}</small></button>`).join('')}</div>`;
-  const atkMs=new Date(s.next_attack_at).getTime()-cnow(), ok=s.defense>=s.next_str, last=(s.log||[])[0];
-  const atk=`<div class="cvbox"><h3>⚔️ Nästa attack om <span id="cvatk">${fmtT(atkMs)}</span></h3><p>Fiendens styrka: <b>${s.next_str}</b> · Ditt försvar: <b>${s.defense}</b> ${ok?'✅':'⚠️'}</p><p style="opacity:.75;font-size:13px">${ok?'Du klarar nästa attack!':'Bygg eller uppgradera 🛡️ Försvar, annars förlorar du en fjärdedel av stenen och metallen, och en överlevande flyr.'}</p>${last?`<p style="font-size:13px">Senaste attacken: ${last.win?`Du vann ✅ +${last.stone} 🪨 +${last.metal} ⚙️`:`Förlorade ❌ ${last.stone} 🪨 ${last.metal} ⚙️`}</p>`:''}</div>`;
-  const floors=[];
-  const pendC=s.pending||{stone:0,metal:0,food_delta:0},pend=[(pendC.stone?pendC.stone+'🪨':''),(pendC.metal?pendC.metal+'⚙️':''),(pendC.food_delta?(pendC.food_delta>0?'+':'')+pendC.food_delta+'🍖':'')].filter(Boolean).join(' '),survReady=(pendC.stone||pendC.metal||pendC.food_delta)&&(s.surv_miners+s.surv_farmers>0);
-  const missDone=s.mission_kind&&(new Date(s.mission_start).getTime()+s.mission_min*60000-cnow()<=0);
-  const dorms=cave.rooms.filter(r=>r.kind==='dorm'),dormPpl={},dormFirst=(dorms[0]||{}).id;
-  {const pool=[...Array(s.surv_miners).fill('🧑‍🏭'),...Array(s.surv_farmers).fill('🧑‍🌾')];dorms.forEach(r=>{dormPpl[r.id]=pool.splice(0,r.level*2)})}
+  const s=cave.state,pw=projRes('power')>0,floors=[];
   for(let f=1;f<=s.depth;f++){
-    const tiles=[0,1,2].map(sl=>{const r=cave.rooms.find(x=>x.floor===f&&x.slot===sl);
-      if(!r) return `<button class="fsempty" data-slot="${f},${sl}"><span style="font-size:24px">＋</span>Bygg</button>`;
-      const k=CK[r.kind]||CK.lounge,W=['🧑‍🔧','🧑‍🌾','🧑‍🍳','🧑‍🔬'],d0=9+(r.id*3)%8,heroHere=!s.mission_kind&&r.id===(cave.rooms[0]||{}).id;
-      const props={workshop:['🛠️','⚙️'],defense:['🛡️','🗡️'],lounge:['🛋️','📺'],dorm:['🛏️','🛏️']}[r.kind]||['🛋️'];
-      const ppl=(dormPpl[r.id]||(r.kind==='dorm'?[]:[W[r.id%W.length]]));
-      const walkers=ppl.map((e,i)=>`<span class="cvw" style="--d:${d0+i*3}s;--dl:-${((r.id+i)*2.3)%(d0+i*3)}s"><i>${e}</i></span>`).join('')+(heroHere?`<span class="cvw hero" style="--d:11s;--dl:-3s;--mx:60%"><i>👷</i></span>`:'');
-      const bub=(r.kind==='dorm'&&dormFirst===r.id&&survReady)?`<button class="fsbub" data-bub="surv" aria-label="Samla in">🎒</button>`:(missDone&&r.id===(cave.rooms[0]||{}).id?`<button class="fsbub" data-bub="mis">🎁 Hemma!</button>`:'');
-      return `<div class="fsroom ${r.color==='night'?'dark':''}" role="button" tabindex="0" data-room="${r.id}"><div class="rw" style="background-color:${CC[r.color]||CC.sand}"></div><div class="rf"></div><div class="rh"><span>${esc(r.name)}</span><span style="color:#ffd23f">${'★'.repeat(r.level)}</span></div>${r.decor?`<span class="rd">${CD[r.decor]?CD[r.decor][0]:''}</span>`:''}<span class="fp" style="left:5px">${props[0]}</span>${props[1]?`<span class="fp" style="right:34px;font-size:22px">${props[1]}</span>`:''}${walkers}${bub}</div>`}).join('');
-    floors.push(`<div class="fsfloor"><span class="cvfl" style="left:34px;top:19px;z-index:4;display:none">${f}</span>${tiles}</div>`)}
-  const hr=new Date().getHours(),night=hr>=20||hr<6,defRooms=cave.rooms.filter(r=>r.kind==='defense').length;
+    const tiles=[0,1,2].map(sl=>cvRoomHtml(cave.rooms.find(x=>x.floor===f&&x.slot===sl),f,sl,pw)).join('');
+    floors.push(`<div class="fsfloor">${tiles}</div>`)}
+  const hr=new Date().getHours(),night=hr>=20||hr<6,defRooms=cave.rooms.filter(r=>r.kind==='defense').length,ok=s.defense>=s.next_str;
   const EN=['🧟','🐺','🧟‍♀️','🐻','🐗','🐍','🦂','🕷️','👹'],pool=EN.slice(0,Math.min(EN.length,3+s.attack_no)),ne=Math.min(7,2+Math.floor(s.attack_no/2)+(night?1:0));
   let surf='';for(let i=0;i<ne;i++){const d=13+(i*5)%11;surf+=`<span class="cvw en" style="--d:${d}s;--dl:-${(i*3.7)%d}s"><i>${pool[(i*2+s.attack_no)%pool.length]}</i></span>`}
   for(let i=0;i<Math.min(3,defRooms);i++)surf+=`<span class="cvguard" style="left:${44+i*6}%">💂</span>`;
@@ -662,40 +749,38 @@ function drawCave(){
   const cl='<span class="cl" style="top:10px;animation-delay:-5s">☁️</span><span class="cl" style="top:36px;animation-delay:-30s;font-size:22px">☁️</span>';
   const surfH=`<div class="cvsurf ${night?'night':''}"><span class="sun">${night?'🌙':'☀️'}</span>${cl}<div class="cvhills"></div><div class="cvground"></div><span class="cvhatch">🛖</span>${surf}<span class="warn">${ok?'✅ Försvaret håller':'⚠️ Försvaret är svagt!'}${s.mission_kind?' · 🧭 hjälparen är ute':''}</span></div>`;
   const nx=s.depth+1,dc=[Math.round(30*Math.pow(nx,1.5)),5*nx,0];
-  const inv=cave.decor.length?cave.decor.map(d=>`<span>${CD[d.kind]?CD[d.kind][0]:'?'} ×${d.qty}</span>`).join(''):'<span style="opacity:.6">Inga än. Hjälparen kan hitta saker!</span>';
+  const T=(k,t)=>`<button role="tab" data-tab="${k}" class="${caveTab===k?'on':''}">${t}</button>`;
   root.innerHTML=`${brand}
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><button class="btn sm ghost" id="cvback" style="width:auto;margin:0">‹ Hem</button><h2 style="margin:0;flex:1;font-size:20px">⛏️ ${esc(s.cave_name)}</h2><button class="btn sm ghost" id="cvren" style="width:auto;margin:0" aria-label="Byt namn">✏️</button></div>
-    <div class="fshud"><div class="fsg food"><b>🍖 ${s.food}</b><div class="fsbar"><i style="width:${Math.min(100,Math.round(s.food/Math.max(12,(s.surv_miners+s.surv_farmers)*12)*100))}%"></i></div>Mat</div><div class="fsg"><b>🪨 ${s.stone}</b><div class="fsbar"><i style="width:${Math.min(100,Math.round(s.stone/4))}%"></i></div>Sten</div><div class="fsg metal"><b>⚙️ ${s.metal}</b><div class="fsbar"><i style="width:${Math.min(100,s.metal)}%"></i></div>Metall</div><div class="fsg cr"><b>💎 ${s.crystal}</b><div class="fsbar"><i style="width:${Math.min(100,s.crystal*10)}%"></i></div>Kristall</div></div>
+    <div class="fshud" id="cvhud">${hudHtml()}</div><div id="cvwarn">${warnHtml()}</div>
     <div style="display:flex;gap:8px;margin:0 0 10px"><button class="btn sm" id="cvmkt" style="margin:0;background:var(--gold);color:#2b2200;width:auto;padding:8px 16px">🤝 Torget</button></div>
     ${surfH}<div class="fsvault"><div class="fsshaft"><div class="fscab">⇅</div></div>${floors.join('')}</div>
     <button class="cvdig" id="cvdig" style="margin-top:-2px">⛏️ Gräv en våning till · ${costTxt(dc)}</button>
-    <div class="cvbox"><div class="cvhelper"><div class="hv">👷</div><div style="flex:1"><h3 style="margin:0">${esc(s.helper_name)}</h3><p style="margin:0">Nivå ${lvl}</p><div class="cvbar"><i style="width:${pct}%"></i></div></div></div>${mis}</div>
-    <div class="cvbox"><h3>🏘️ Överlevande ${s.surv_miners+s.surv_farmers}/${s.capacity}</h3>${s.capacity===0?'<p>Bygg en <b>🛏️ Sovsal</b> så kan andra söka skydd hos dig. De samlar sten, metall och mat åt dig.</p>':`<p>⛏️ ${s.surv_miners} gruvarbetare · 🌾 ${s.surv_farmers} bönder. Alla äter 1 🍖 i timmen.</p>${s.surv_miners+s.surv_farmers<s.capacity?`<p>Nästa person söker skydd om <b id="cvarr">${fmtT(new Date(s.next_arrival_at).getTime()-cnow())}</b></p>`:'<p>Sovsalarna är fulla. Bygg eller uppgradera en Sovsal för fler.</p>'}${survReady?`<p>Redo att samla: <b>${pend}</b></p><button class="btn" id="cvsurv">🎒 Samla in</button>`:'<p style="opacity:.65">Inget att samla in just nu.</p>'}`}</div>
-    ${atk}
-    <div class="cvbox" style="margin-top:12px"><h3>🎨 Dina pynt-saker</h3><div class="cvdec">${inv}</div><p style="opacity:.7;font-size:13px">Tryck på ett rum för att pynta, byta färg eller uppgradera.</p></div>`;
+    <div class="cvtabs" role="tablist">${T('res','👥 Invånare')}${T('help','👷 Hjälpare')}${T('atk','⚔️ Försvar')}</div>
+    <div class="cvbox" id="cvtab">${tabHtml()}</div>`;
   document.getElementById('cvback').onclick=()=>{clearInterval(caveT);go('home')};
   document.getElementById('cvren').onclick=()=>{caveSheet(`<h2>Byt namn</h2><label>Grottans namn</label><input id="cn1" maxlength="24" value="${esc(s.cave_name)}"><label>Hjälparens namn</label><input id="cn2" maxlength="20" value="${esc(s.helper_name)}"><button class="btn" id="cnok">Spara</button><button class="btn ghost" id="cnx">Stäng</button>`);
     document.getElementById('cnx').onclick=closeCaveSheet;document.getElementById('cnok').onclick=()=>caveCall('cave_rename',{p_cave:document.getElementById('cn1').value,p_helper:document.getElementById('cn2').value})};
-  root.querySelectorAll('[data-mis]').forEach(b=>b.onclick=async()=>{b.disabled=true;await caveCall('cave_send',{p_kind:b.dataset.mis})});
-  const cc=document.getElementById('cvcollect');if(cc)cc.onclick=async()=>{cc.disabled=true;const {data,error}=await caveCall('cave_collect');if(!error&&data)showFound(data)};
-  const cr=document.getElementById('cvrecall');if(cr)cr.onclick=async()=>{cr.disabled=true;const {data,error}=await caveCall('cave_collect');if(!error&&data)showFound(data)};
   document.getElementById('cvdig').onclick=()=>caveCall('cave_dig');
-  const collS=async b=>{if(b)b.disabled=true;const {data,error}=await caveCall('cave_survivors_collect');if(!error&&data){const p=[];if(data.stone)p.push('+'+data.stone+' 🪨');if(data.metal)p.push('+'+data.metal+' ⚙️');if(data.food_delta)p.push((data.food_delta>0?'+':'')+data.food_delta+' 🍖');caveToast('Insamlat! '+p.join('  '))}};
-  const sv=document.getElementById('cvsurv');if(sv)sv.onclick=()=>collS(sv);
-  root.querySelectorAll('[data-bub]').forEach(b=>b.onclick=e=>{e.stopPropagation();if(b.dataset.bub==='surv')collS(b);else{b.disabled=true;caveCall('cave_collect').then(({data,error})=>{if(!error&&data)showFound(data)})}});
   document.getElementById('cvmkt').onclick=openMarket;updMarketBadge();if(!cvOff)loadOffers().then(updMarketBadge);
-  root.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>{const [f,sl]=b.dataset.slot.split(',').map(Number);
-    caveSheet(`<h2>Bygg ett rum</h2>${Object.entries(CK).map(([k,v])=>{const c=ccost(k,1);return `<button class="cvopt" data-k="${k}" ${canPay(c)?'':'disabled'}><span class="oe">${v.e}</span><span><b>${v.n}</b><small>${v.d}</small><small>${costTxt(c)}</small></span></button>`}).join('')}<button class="btn ghost" id="cbx">Stäng</button>`);
-    document.getElementById('cbx').onclick=closeCaveSheet;
-    document.querySelectorAll('#cvov [data-k]').forEach(o=>o.onclick=()=>caveCall('cave_build',{p_floor:f,p_slot:sl,p_kind:o.dataset.k}))});
+  root.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{caveTab=b.dataset.tab;root.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('on',x===b));document.getElementById('cvtab').innerHTML=tabHtml();bindTab()});
+  bindTab();
+  root.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>openBuild(...b.dataset.slot.split(',').map(Number)));
   root.querySelectorAll('[data-room]').forEach(b=>{b.onclick=()=>openRoom(+b.dataset.room);b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRoom(+b.dataset.room)}}});
-  caveFlag='';clearInterval(caveT);caveT=setInterval(tickCave,1000);
+  caveSig=caveSigOf();caveFlag='';clearInterval(caveT);caveT=setInterval(tickCave,1000);
+  if(caveFirst){caveFirst=false;offlineSummary()}
+  saveSnap();
+}
+function openBuild(f,sl){
+  caveSheet(`<h2>Bygg ett rum</h2>${Object.entries(CK).map(([k,v])=>{const c=ccost(k,1);return `<button class="cvopt" data-k="${k}" ${canPay(c)?'':'disabled'}><span class="oe">${v.e}</span><span><b>${v.n}</b><small>${v.d}</small><small>${costTxt(c)}</small></span></button>`}).join('')}<button class="btn ghost" id="cbx">Stäng</button>`);
+  document.getElementById('cbx').onclick=closeCaveSheet;
+  document.querySelectorAll('#cvov [data-k]').forEach(o=>o.onclick=()=>caveCall('cave_build',{p_floor:f,p_slot:sl,p_kind:o.dataset.k}))
 }
 function paintAnim(id,oldc){
   const r=document.querySelector('[data-room="'+id+'"]');if(!r||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))return;
   try{r.scrollIntoView({block:'center',behavior:'smooth'})}catch(e){}
-  const w=r.querySelector('.rw'),ov=el('div',{class:'cvpaint'}),br=el('div',{class:'cvbrush'},'🖌️'),pt=el('div',{class:'cvpainter'},'🧑‍🎨');
-  ov.style.background=CC[oldc]||CC.sand;w.appendChild(ov);r.appendChild(br);r.appendChild(pt);
+  const rm=cave.rooms.find(x=>x.id===id),w=r.querySelector('.rw'),ov=el('div',{class:'cvpaint'}),br=el('div',{class:'cvbrush'},'🖌️'),pt=el('div',{class:'cvpainter'},'🧑‍🎨');
+  ov.style.background=CC[oldc]||((CK[rm&&rm.kind]||CK.lounge).tint);w.appendChild(ov);r.appendChild(br);r.appendChild(pt);
   setTimeout(()=>{ov.remove();br.remove();pt.remove()},1900);
 }
 function showFound(d){
@@ -705,41 +790,93 @@ function showFound(d){
   if(d.decor&&d.decor.length&&!d.early)try{celebrate(1,false)}catch(e){}
 }
 function openRoom(id){
-  const r=cave.rooms.find(x=>x.id===id);if(!r)return;const k=CK[r.kind]||CK.lounge,again=()=>openRoom(id);
-  const up=r.level<5?ccost(r.kind,r.level+1):null;
-  caveSheet(`<h2>${k.e} ${esc(r.name)}</h2><p style="margin:0 0 6px">${k.n} · nivå ${r.level} · ${k.d}</p>
-    <input id="rn" maxlength="20" value="${esc(r.name)}"><button class="btn sm ghost" id="rnok" style="width:auto">Spara namn</button>
+  const r=cave.rooms.find(x=>x.id===id);if(!r||r.kind==='ruin')return;const k=CK[r.kind]||CK.lounge,again=()=>openRoom(id);
+  const up=r.level<5?ccost(r.kind,r.level+1):null,sk=k.skill,sn=sk?(SKILLS.find(x=>x[0]===sk)||[])[1]:null;
+  const mine=cave.residents.filter(x=>x.room_id===r.id),cand=cave.residents.filter(x=>x.room_id!==r.id&&x.status==='ok').sort((a,b)=>sk?b[sk]-a[sk]:0);
+  const staff=r.slots>0?`<div class="cvgrp">Personal ${mine.length}/${r.slots}${sn?` · bäst på ${sn}`:''}</div>${mine.map(x=>`<div class="cvres2" data-un="${x.id}"><div class="cvav">${resSvg(x.look,28,'')}</div><div style="flex:1"><b>${esc(x.name)}</b>${sk?` <small>${sn} ${x[sk]}</small>`:''}</div><button class="btn sm ghost" style="width:auto;margin:0">Ta bort</button></div>`).join('')}${mine.length<r.slots?cand.map(x=>`<div class="cvres2" data-as="${x.id}"><div class="cvav">${resSvg(x.look,28,'')}</div><div style="flex:1"><b>${esc(x.name)}</b>${sk?` <small>${sn} ${x[sk]}</small>`:''}<div style="font-size:11px;opacity:.7">${esc(jobName(x))}</div></div><button class="btn sm" style="width:auto;margin:0">Sätt hit</button></div>`).join('')||'<p style="opacity:.65;font-size:13px">Ingen ledig invånare.</p>':''}`:'<p style="opacity:.75;font-size:13px">Det här rummet behöver ingen personal.</p>';
+  caveSheet(`<h2>${k.e} ${esc(r.name)}</h2><p style="margin:0 0 6px">${k.n} · nivå ${r.level} · ${k.d}</p><p style="margin:0 0 6px;font-size:13px"><b>Effekt:</b> ${roomFx(r.kind,r.level)}${r.slots>0?` · drift ${Math.round((r.f==null?1:r.f)*100)} %`:''}</p>
+    ${staff}
     ${up?`<button class="cvopt" id="rup" ${canPay(up)?'':'disabled'}><span class="oe">⬆️</span><span><b>Uppgradera till nivå ${r.level+1}</b><small>${costTxt(up)}</small></span></button>`:'<p><b>Högsta nivån ⭐</b></p>'}
-    <div class="cvgrp">Färg</div><div class="cvcols">${Object.entries(CC).map(([n,c])=>`<button data-col="${n}" class="${r.color===n?'on':''}" style="background:${c}" aria-label="${n}"></button>`).join('')}</div>
+    <div class="cvgrp">Namn</div><input id="rn" maxlength="20" value="${esc(r.name)}"><button class="btn sm ghost" id="rnok" style="width:auto">Spara namn</button>
+    <div class="cvgrp">Färg</div><div class="cvcols">${Object.entries(CC).map(([n,c])=>`<button data-col="${n}" class="${r.color===n?'on':''}" style="background:${c||k.tint}" aria-label="${n}"></button>`).join('')}</div>
     <div class="cvgrp">Pynt ${r.decor?'· nu: '+(CD[r.decor]||['',''])[0]+' '+(CD[r.decor]||['',''])[1]:''}</div>
     <div class="cvdec">${cave.decor.map(d=>`<button class="cvopt" style="width:auto;padding:8px 12px;margin:0" data-dec="${d.kind}">${CD[d.kind]?CD[d.kind][0]:'?'} ×${d.qty}</button>`).join('')}${r.decor?`<button class="cvopt" style="width:auto;padding:8px 12px;margin:0" data-dec="">✖ Ta bort</button>`:''}${!cave.decor.length&&!r.decor?'<span style="opacity:.6;font-size:13px">Du har inga pynt-saker än.</span>':''}</div>
+    <div class="cvgrp">Flytta eller riv</div><button class="btn sm ghost" id="rmv" style="width:auto">↔️ Flytta rummet</button> <button class="btn sm ghost" id="rdm" style="width:auto;color:var(--red)">🧱 Riv rummet</button>
     <button class="btn ghost" id="rx">Stäng</button>`);
   const q=s=>document.querySelector('#cvov '+s);
   q('#rx').onclick=closeCaveSheet;
   q('#rnok').onclick=()=>caveCall('cave_rename_room',{p_room:id,p_name:q('#rn').value},again);
   const u=q('#rup');if(u)u.onclick=()=>caveCall('cave_upgrade',{p_room:id},again);
+  document.querySelectorAll('#cvov [data-un]').forEach(b=>b.onclick=()=>caveCall('cave_assign',{p_res:+b.dataset.un,p_room:null},again));
+  document.querySelectorAll('#cvov [data-as]').forEach(b=>b.onclick=()=>caveCall('cave_assign',{p_res:+b.dataset.as,p_room:id},again));
   document.querySelectorAll('#cvov [data-col]').forEach(b=>b.onclick=async()=>{const old=r.color;if(b.dataset.col===old)return;const {error}=await caveCall('cave_paint',{p_room:id,p_color:b.dataset.col});if(!error)setTimeout(()=>paintAnim(id,old),60)});
   document.querySelectorAll('#cvov [data-dec]').forEach(b=>b.onclick=()=>caveCall('cave_decorate',{p_room:id,p_kind:b.dataset.dec||null},again));
+  q('#rmv').onclick=()=>openMove(id);
+  q('#rdm').onclick=function(){if(this.dataset.sure){caveCall('cave_demolish',{p_room:id})}else{this.dataset.sure=1;this.textContent='Tryck igen för att riva (50 % tillbaka)'}};
+}
+function openMove(id){
+  const r=cave.rooms.find(x=>x.id===id),spots=[];
+  for(let f=1;f<=cave.state.depth;f++)for(let sl=0;sl<3;sl++){const x=cave.rooms.find(q=>q.floor===f&&q.slot===sl);if(!x||x.kind==='ruin'||x.id===id)spots.push([f,sl,x&&x.id!==id?'(ruin)':x?'(här nu)':'(ledig)'])}
+  caveSheet(`<h2>Flytta ${esc(r.name)}</h2><p style="font-size:13px;opacity:.75">Välj en ledig plats.</p>${spots.filter(x=>x[2]!=='(här nu)').map(x=>`<button class="cvopt" data-mv="${x[0]},${x[1]}"><span class="oe">↔️</span><span><b>Våning ${x[0]}, plats ${x[1]+1}</b><small>${x[2]}</small></span></button>`).join('')||'<p>Inga lediga platser. Gräv en våning till.</p>'}<button class="btn ghost" id="mx2">Tillbaka</button>`);
+  document.getElementById('mx2').onclick=()=>openRoom(id);
+  document.querySelectorAll('#cvov [data-mv]').forEach(b=>b.onclick=()=>{const [f,sl]=b.dataset.mv.split(',').map(Number);caveCall('cave_move',{p_room:id,p_floor:f,p_slot:sl})});
+}
+function openRes(id){
+  const r=cave.residents.find(x=>x.id===id);if(!r)return;const again=()=>openRes(id),nxt=20*r.level*r.level,cur=20*(r.level-1)*(r.level-1),pct=Math.round((r.xp-cur)/(nxt-cur)*100);
+  const rooms=cave.rooms.filter(x=>x.slots>0&&x.kind!=='ruin'),hist=(r.history||[]).slice(0,6);
+  caveSheet(`<div style="display:flex;gap:14px;align-items:center"><div class="cvav big">${resSvg(r.look,56,'')}</div><div style="flex:1"><h2 style="margin:0">${esc(r.name)}</h2><p style="margin:2px 0">Nivå ${r.level} · ${r.status==='injured'?'🩹 Skadad':esc(jobName(r))}</p>${bar(pct)}<small style="opacity:.7">${r.xp}/${nxt} erfarenhet</small></div></div>
+    <div class="cvgrp">Mående</div>${[['Hälsa',r.health,'good'],['Energi',r.energy,'good'],['Hunger',r.hunger,'bad'],['Törst',r.thirst,'bad'],['Humör',r.mood,'good']].map(([n,v,c])=>`<div class="stline"><span>${n}</span>${bar(v,c==='bad'?(v>60?'bad':'good'):(v<40?'bad':'good'))}<b>${Math.round(v)}</b></div>`).join('')}
+    <div class="cvgrp">Egenskaper</div><div class="skgrid">${SKILLS.map(([k,n,e])=>`<div>${e} ${n}<b>${r[k]}</b></div>`).join('')}</div>
+    <div class="cvgrp">Jobb</div>${r.status==='injured'?'<p style="font-size:13px">Skadade kan inte arbeta. Bygg och bemanna ett Sjukhus.</p>':`<select id="rjob"><option value="">Ledig</option>${rooms.map(x=>`<option value="${x.id}" ${x.id===r.room_id?'selected':''}>${(CK[x.kind]||{}).e} ${esc(x.name)} (${cave.residents.filter(q=>q.room_id===x.id).length}/${x.slots})</option>`).join('')}</select>`}
+    <div class="cvgrp">Utrustning</div><p style="font-size:13px;opacity:.7;margin:0">${r.gear&&Object.keys(r.gear).length?esc(JSON.stringify(r.gear)):'Ingen utrustning ännu. Kommer i nästa version.'}</p>
+    <div class="cvgrp">Historia</div>${hist.length?hist.map(h=>`<p style="font-size:12px;margin:2px 0">• ${esc(h.e||'')}</p>`).join(''):'<p style="font-size:12px;opacity:.6">Inget än.</p>'}
+    <div class="cvgrp">Byt namn</div><input id="rnm" maxlength="20" value="${esc(r.name)}"><button class="btn sm ghost" id="rnmok" style="width:auto">Spara</button><button class="btn ghost" id="rx">Stäng</button>`);
+  const q=s=>document.querySelector('#cvov '+s);
+  q('#rx').onclick=closeCaveSheet;q('#rnmok').onclick=()=>caveCall('cave_rename_res',{p_res:id,p_name:q('#rnm').value},again);
+  const j=q('#rjob');if(j)j.onchange=()=>caveCall('cave_assign',{p_res:id,p_room:j.value?+j.value:null},again);
+}
+/* --- "Medan du var borta" --- */
+const SNAPK='cave_snap_v2';
+function saveSnap(){try{const s=cave.state;localStorage.setItem(SNAPK,JSON.stringify({t:Date.now(),n:cave.residents.length,d:s.depth,r:{power:Math.floor(projRes('power')),food:Math.floor(projRes('food')),water:Math.floor(projRes('water')),stone:Math.floor(projRes('stone')),metal:Math.floor(projRes('metal')),medicine:Math.floor(projRes('medicine'))},a:s.attack_no}))}catch(e){}}
+function offlineSummary(){
+  let o=null;try{o=JSON.parse(localStorage.getItem(SNAPK)||'null')}catch(e){}
+  if(!o||Date.now()-o.t<10*60000)return;
+  const s=cave.state,rows=[];
+  [['power','⚡','El'],['food','🍖','Mat'],['water','💧','Vatten'],['stone','🪨','Byggmat.'],['metal','⚙️','Metall'],['medicine','💊','Medicin']].forEach(([k,e,n])=>{const d=Math.floor(projRes(k))-(o.r[k]||0);if(d)rows.push(`<p>${e} ${n}: <b style="color:${d>0?'#1e8e3e':'#c0392b'}">${d>0?'+':''}${d}</b></p>`)});
+  const nn=cave.residents.length-o.n;if(nn>0)rows.push(`<p>👥 <b>${nn}</b> ny${nn>1?'a':''} invånare har kommit.</p>`);
+  const na=s.attack_no-o.a;if(na>0){const l=(s.log||[]).slice(0,na);rows.push(`<p>⚔️ ${na} attack${na>1?'er':''}: ${l.filter(x=>x.win).length} vunna, ${l.filter(x=>!x.win).length} förlorade.</p>`)}
+  const inj=cave.residents.filter(x=>x.status==='injured').length;if(inj)rows.push(`<p>🩹 ${inj} skadad${inj>1?'e':''}.</p>`);
+  if(!rows.length)return;
+  caveSheet(`<h2>Medan du var borta</h2><p style="font-size:13px;opacity:.75;margin:0 0 6px">Bortrest: ${fmtH((Date.now()-o.t)/3600000)}</p>${rows.join('')}<button class="btn" id="osx">Fortsätt</button>`);
+  document.getElementById('osx').onclick=closeCaveSheet;
 }
 function tickCave(){
   if(page!=='cave'||!cave){clearInterval(caveT);return}
-  const s=cave.state;
-  if(s.mission_kind){const end=new Date(s.mission_start).getTime()+s.mission_min*60000,left=end-cnow(),t=document.getElementById('cvtime');
-    if(left<=0&&t&&caveFlag!=='m'){caveFlag='m';if(!document.getElementById('cvov'))drawCave();return}
+  const s=cave.state,h=document.getElementById('cvhud');
+  if(h&&!document.hidden){
+    h.querySelectorAll('[data-res]').forEach(g=>{const k=g.dataset.res,v=projRes(k),cap=(s.caps||{})[k]||(k==='crystal'?20:999);g.querySelector('.rv').textContent=Math.floor(v);g.querySelector('.cvbar i').style.width=Math.min(100,v/cap*100)+'%'})}
+  caveN++;
+  if(caveN%10===0){const w=document.getElementById('cvwarn');if(w)w.innerHTML=warnHtml()}
+  const t=document.getElementById('cvtime');
+  if(s.mission_kind){const end=new Date(s.mission_start).getTime()+s.mission_min*60000,left=end-cnow();
+    if(left<=0&&t&&caveFlag!=='m'){caveFlag='m';if(!document.getElementById('cvov')){document.getElementById('cvtab').innerHTML=tabHtml();bindTab()}return}
     if(t)t.textContent=fmtT(left);const b=document.getElementById('cvbar');if(b)b.style.width=Math.min(100,100-left/(s.mission_min*600))+'%'}
-  caveN=(typeof caveN==='number'?caveN:0)+1;if(caveN%30===0&&!document.getElementById('cvov'))loadOffers().then(updMarketBadge);
-  const ar=document.getElementById('cvarr');if(ar){const l=new Date(s.next_arrival_at).getTime()-cnow();ar.textContent=fmtT(l);if(l<=-1500&&caveFlag!=='r'){caveFlag='r';loadCave().then(()=>{if(page==='cave'&&!document.getElementById('cvov'))drawCave()})}}
-  const atk=new Date(s.next_attack_at).getTime()-cnow(),a=document.getElementById('cvatk');
-  if(a)a.textContent=fmtT(atk);
-  if(atk<=-1500&&caveFlag!=='a'){caveFlag='a';loadCave().then(()=>{if(page==='cave'&&!document.getElementById('cvov'))drawCave()})}
+  const ar=document.getElementById('cvarr');if(ar)ar.textContent=fmtT(new Date(s.next_arrival_at).getTime()-cnow());
+  const atk=new Date(s.next_attack_at).getTime()-cnow(),a=document.getElementById('cvatk');if(a)a.textContent=fmtT(atk);
+  const due=atk<=-1500||(ar&&new Date(s.next_arrival_at).getTime()-cnow()<=-1500);
+  if((caveN%45===0||(due&&caveFlag!==(atk<=-1500?'a':'r')+caveFetchAt))&&!document.hidden&&!document.getElementById('cvov')){
+    if(due)caveFlag=(atk<=-1500?'a':'r')+caveFetchAt;
+    loadCave().then(()=>{if(page!=='cave'||document.getElementById('cvov'))return;const sg=caveSigOf();if(sg!==caveSig)drawCave();else{const l=document.getElementById('cvrl');if(l)l.innerHTML=resListHtml(),bindTab();const w=document.getElementById('cvwarn');if(w)w.innerHTML=warnHtml()}saveSnap()});
+    if(caveN%90===0)loadOffers().then(updMarketBadge)}
 }
+document.addEventListener('visibilitychange',()=>{if(document.hidden){try{if(cave&&page==='cave')saveSnap()}catch(e){}}else if(page==='cave'&&cave&&!document.getElementById('cvov'))loadCave().then(()=>{if(page==='cave'&&!document.getElementById('cvov'))drawCave()})});
 
 /* ---------- TORGET (handel mellan vänner) ---------- */
 let cvOff=null,cvMode='sell',cvDraft={to:'',a:'stone',aq:10,b:'coins',bq:20};
-const IT=Object.assign({stone:['🪨','Sten'],metal:['⚙️','Metall'],crystal:['💎','Kristall'],coins:['🪙','Mynt'],food:['🍖','Mat']},Object.fromEntries(Object.entries(CD)));
+const IT=Object.assign({stone:['🪨','Sten'],metal:['⚙️','Metall'],crystal:['💎','Kristall'],coins:['🪙','Mynt'],food:['🍖','Mat'],water:['💧','Vatten'],medicine:['💊','Medicin']},Object.fromEntries(Object.entries(CD)));
 const itx=(k,q)=>(IT[k]?IT[k][0]:'?')+' '+q+' '+(IT[k]?IT[k][1].toLowerCase():'');
 Object.assign(CERR,{nothing:'Inget att samla in än.',not_friend:'Ni är inte vänner.',too_many:'Du har redan 5 öppna erbjudanden.',gone:'Erbjudandet finns inte längre.',own_offer:'Det är ditt eget erbjudande.',not_yours:'Det här erbjudandet är inte till dig.',bad_item:'Välj två olika saker.',bad_qty:'Fel antal (1–999, mynt max 500).'});
-function haveItem(k){const s=cave.state;return k==='coins'?(wallet||0):k==='stone'?s.stone:k==='metal'?s.metal:k==='crystal'?s.crystal:((cave.decor.find(d=>d.kind===k)||{}).qty||0)}
+function haveItem(k){const s=cave.state;return k==='coins'?(wallet||0):k==='stone'?s.stone:k==='metal'?s.metal:k==='crystal'?s.crystal:k==='food'?Math.floor(projRes('food')):k==='water'?Math.floor(projRes('water')):k==='medicine'?Math.floor(projRes('medicine')):((cave.decor.find(d=>d.kind===k)||{}).qty||0)}
 async function loadOffers(){const {data}=await db.rpc('cave_offers');if(data)cvOff=data;return data}
 function updMarketBadge(){const b=document.getElementById('cvmkt');if(b&&cvOff)b.innerHTML='🤝 Torget'+(cvOff.incoming.length?` <span style="display:inline-block;margin-left:4px;background:var(--red);color:#fff;font-size:11px;min-width:18px;border-radius:9px;padding:1px 5px">${cvOff.incoming.length}</span>`:'')}
 async function tradeCall(fn,args,reopen){const {error}=await db.rpc(fn,args);if(error)caveToast(CERR[(error.message||'').trim()]||'Något gick fel.');else caveToast('Klart! ✅');await Promise.all([loadCave(),loadOffers(),loadWallet()]);if(page==='cave'){drawCave();reopen()}}
