@@ -409,6 +409,37 @@
   .cvopt{display:flex;align-items:center;gap:10px;width:100%;border:none;border-radius:14px;background:var(--surface);padding:12px;margin-bottom:8px;font-family:inherit;font-size:14px;text-align:left;color:var(--ink);cursor:pointer;box-shadow:0 3px 8px var(--shadow)}.cvopt .oe{font-size:30px}.cvopt small{display:block;opacity:.7}
   .cvopt[disabled]{opacity:.45}
   .cvsheet select{width:100%;box-sizing:border-box;padding:10px 12px;border-radius:12px;border:1.5px solid var(--felt-edge);font-size:16px;font-family:inherit;margin:4px 0 8px;background:#fff;color:var(--ink)}
+  .cvsurf{position:relative;height:150px;border-radius:20px 20px 0 0;overflow:hidden;background:linear-gradient(#8fd0ff,#dff3ff 75%)}
+  .cvsurf.night{background:linear-gradient(#0e1736,#3b3f7a 80%)}
+  .cvsurf .sun{position:absolute;right:14px;top:8px;font-size:30px}.cvsurf .cl{position:absolute;font-size:30px;opacity:.9;animation:cvcloud 60s linear infinite}
+  @keyframes cvcloud{from{left:-15%}to{left:110%}}
+  .cvhills{position:absolute;left:0;right:0;bottom:30px;height:50px;background:radial-gradient(60px 40px at 15% 100%,#6dbb5a 98%,transparent),radial-gradient(90px 50px at 55% 100%,#5aa845 98%,transparent),radial-gradient(70px 36px at 90% 100%,#6dbb5a 98%,transparent)}
+  .cvground{position:absolute;left:0;right:0;bottom:0;height:34px;background:linear-gradient(#5aa845 0 10px,#7a5230 10px)}
+  .cvhatch{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);font-size:34px;z-index:2}
+  .cvguard{position:absolute;bottom:22px;font-size:24px;z-index:3;animation:cvbob 1.6s ease-in-out infinite}
+  @keyframes cvbob{50%{transform:translateY(-3px)}}
+  .cvw{position:absolute;bottom:0;font-size:26px;line-height:1;animation:cvwalk var(--d,12s) linear infinite;animation-delay:var(--dl,0s);left:2%}
+  .cvw>i{display:block;font-style:normal;animation:cvflip var(--d,12s) linear infinite;animation-delay:var(--dl,0s)}
+  @keyframes cvwalk{0%{left:2%}48%{left:var(--mx,86%)}50%{left:var(--mx,86%)}98%{left:2%}100%{left:2%}}
+  @keyframes cvflip{0%,48%{transform:scaleX(1)}50%,98%{transform:scaleX(-1)}100%{transform:scaleX(1)}}
+  .cvsurf .cvw{bottom:18px}.cvsurf .cvw.en{filter:drop-shadow(0 0 4px rgba(255,0,0,.45))}
+  .cvsurf .warn{position:absolute;left:10px;top:8px;background:rgba(0,0,0,.45);color:#fff;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700}
+  .cvfloor{background-image:radial-gradient(circle at 20% 30%,rgba(255,255,255,.05) 2px,transparent 3px),radial-gradient(circle at 70% 70%,rgba(0,0,0,.18) 3px,transparent 4px);background-size:34px 34px}
+  .cvroom{overflow:hidden;padding:0;min-height:104px;display:block;cursor:pointer;text-align:left;background:transparent!important;border-radius:12px;box-shadow:0 3px 8px rgba(0,0,0,.45)}
+  .cvroom .rw{position:absolute;inset:0;overflow:hidden;border-radius:12px;background-image:repeating-linear-gradient(90deg,rgba(0,0,0,.05) 0 2px,transparent 2px 22px)}
+  .cvroom .rf{position:absolute;left:0;right:0;bottom:0;height:20px;background:rgba(0,0,0,.22)}
+  .cvroom .rk{position:absolute;left:6px;bottom:16px;font-size:30px;z-index:1}
+  .cvroom .rd{position:absolute;right:6px;top:22px;font-size:26px;z-index:1}
+  .cvroom .rn{position:absolute;left:6px;top:4px;z-index:2;font-size:11px;font-weight:800;background:rgba(255,255,255,.7);color:#222;border-radius:8px;padding:1px 6px;max-width:80%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cvroom.dark .rn{background:rgba(0,0,0,.4);color:#fff}
+  .cvroom .rl{position:absolute;right:6px;bottom:3px;font-size:10px;letter-spacing:1px;z-index:2;color:#fff;text-shadow:0 1px 2px #000}
+  .cvroom .cvw{bottom:6px;font-size:22px;z-index:2;--mx:70%}.cvroom .cvw.hero{font-size:25px;filter:drop-shadow(0 0 5px gold)}
+  .cvpaint{position:absolute;inset:0;z-index:3;animation:cvwipe 1.7s ease-in-out forwards}
+  @keyframes cvwipe{from{clip-path:inset(0 0 0 0)}to{clip-path:inset(0 0 0 100%)}}
+  .cvbrush,.cvpainter{position:absolute;z-index:5;font-size:26px;animation:cvbr 1.7s ease-in-out forwards}.cvbrush{top:24px}.cvpainter{bottom:4px;font-size:24px}
+  @keyframes cvbr{from{left:0}to{left:calc(100% - 28px)}}
+  .cvslot{background:rgba(0,0,0,.28);min-height:104px}
+  @media (prefers-reduced-motion:reduce){.cvw,.cvw>i,.cvsurf .cl,.cvguard{animation:none!important}.cvpaint,.cvbrush,.cvpainter{display:none}}
 </style>
 </head>
 <body>
@@ -590,9 +621,16 @@ function drawCave(){
   for(let f=1;f<=s.depth;f++){
     const tiles=[0,1,2].map(sl=>{const r=cave.rooms.find(x=>x.floor===f&&x.slot===sl);
       if(!r) return `<button class="cvslot" data-slot="${f},${sl}"><span style="font-size:24px">＋</span>Bygg</button>`;
-      const k=CK[r.kind]||CK.lounge;
-      return `<button class="cvroom ${r.color==='night'?'dark':''}" style="background:${CC[r.color]||CC.sand}" data-room="${r.id}">${r.decor?`<span class="rd">${CD[r.decor]?CD[r.decor][0]:''}</span>`:''}<span class="re">${k.e}</span><span>${esc(r.name)}</span><span class="rl">${'★'.repeat(r.level)}</span></button>`}).join('');
-    floors.push(`<div class="cvfloor" style="background:hsl(26,32%,${Math.max(14,30-f*1.5)}%)"><span class="cvfl">${f}</span>${tiles}</div>`)}
+      const k=CK[r.kind]||CK.lounge,W=['🧑‍🔧','🧑‍🌾','🧑‍🍳','🧑‍🔬'],wk=W[r.id%W.length],d=9+(r.id*3)%8,heroHere=!s.mission_kind&&r.id===(cave.rooms[0]||{}).id;
+      return `<div class="cvroom ${r.color==='night'?'dark':''}" role="button" tabindex="0" data-room="${r.id}"><div class="rw" style="background-color:${CC[r.color]||CC.sand}"></div><div class="rf"></div><span class="rn">${esc(r.name)}</span>${r.decor?`<span class="rd">${CD[r.decor]?CD[r.decor][0]:''}</span>`:''}<span class="rk">${k.e}</span><span class="cvw" style="--d:${d}s;--dl:-${(r.id*2.3)%d}s"><i>${wk}</i></span>${heroHere?`<span class="cvw hero" style="--d:11s;--dl:-3s;--mx:60%"><i>👷</i></span>`:''}<span class="rl">${'★'.repeat(r.level)}</span></div>`}).join('');
+    floors.push(`<div class="cvfloor" style="background-color:hsl(26,32%,${Math.max(14,30-f*1.5)}%)"><span class="cvfl">${f}</span>${tiles}</div>`)}
+  const hr=new Date().getHours(),night=hr>=20||hr<6,defRooms=cave.rooms.filter(r=>r.kind==='defense').length;
+  const EN=['🧟','🐺','🧟‍♀️','🐻','🐗','🐍','🦂','🕷️','👹'],pool=EN.slice(0,Math.min(EN.length,3+s.attack_no)),ne=Math.min(7,2+Math.floor(s.attack_no/2)+(night?1:0));
+  let surf='';for(let i=0;i<ne;i++){const d=13+(i*5)%11;surf+=`<span class="cvw en" style="--d:${d}s;--dl:-${(i*3.7)%d}s"><i>${pool[(i*2+s.attack_no)%pool.length]}</i></span>`}
+  for(let i=0;i<Math.min(3,defRooms);i++)surf+=`<span class="cvguard" style="left:${44+i*6}%">💂</span>`;
+  if(s.mission_kind)surf+=`<span class="cvw hero" style="--d:40s;--dl:-8s;--mx:90%;font-size:24px"><i>👷</i></span>`;
+  const cl='<span class="cl" style="top:10px;animation-delay:-5s">☁️</span><span class="cl" style="top:36px;animation-delay:-30s;font-size:22px">☁️</span>';
+  const surfH=`<div class="cvsurf ${night?'night':''}"><span class="sun">${night?'🌙':'☀️'}</span>${cl}<div class="cvhills"></div><div class="cvground"></div><span class="cvhatch">🛖</span>${surf}<span class="warn">${ok?'✅ Försvaret håller':'⚠️ Försvaret är svagt!'}${s.mission_kind?' · 🧭 hjälparen är ute':''}</span></div>`;
   const nx=s.depth+1,dc=[Math.round(30*Math.pow(nx,1.5)),5*nx,0];
   const inv=cave.decor.length?cave.decor.map(d=>`<span>${CD[d.kind]?CD[d.kind][0]:'?'} ×${d.qty}</span>`).join(''):'<span style="opacity:.6">Inga än. Hjälparen kan hitta saker!</span>';
   root.innerHTML=`${brand}
@@ -600,7 +638,7 @@ function drawCave(){
     <div class="cvres"><span class="bgpill">🪨 ${s.stone}</span><span class="bgpill">⚙️ ${s.metal}</span><span class="bgpill">💎 ${s.crystal}</span><button class="bgpill" id="cvmkt" style="border:none;cursor:pointer;font-family:inherit;font-size:14px;background:var(--gold);color:#2b2200">🤝 Torget</button></div>
     <div class="cvbox"><div class="cvhelper"><div class="hv">👷</div><div style="flex:1"><h3 style="margin:0">${esc(s.helper_name)}</h3><p style="margin:0">Nivå ${lvl}</p><div class="cvbar"><i style="width:${pct}%"></i></div></div></div>${mis}</div>
     ${atk}
-    <div class="cvsky"><span>☁️</span><span>🌳</span><span>🏠</span><span>🌲</span><span>☁️</span></div><div class="cvgrass"></div>${floors.join('')}
+    ${surfH}${floors.join('')}
     <button class="cvdig" id="cvdig">⛏️ Gräv en våning till · ${costTxt(dc)}</button>
     <div class="cvbox" style="margin-top:12px"><h3>🎨 Dina pynt-saker</h3><div class="cvdec">${inv}</div><p style="opacity:.7;font-size:13px">Tryck på ett rum för att pynta, byta färg eller uppgradera.</p></div>`;
   document.getElementById('cvback').onclick=()=>{clearInterval(caveT);go('home')};
@@ -615,8 +653,15 @@ function drawCave(){
     caveSheet(`<h2>Bygg ett rum</h2>${Object.entries(CK).map(([k,v])=>{const c=ccost(k,1);return `<button class="cvopt" data-k="${k}" ${canPay(c)?'':'disabled'}><span class="oe">${v.e}</span><span><b>${v.n}</b><small>${v.d}</small><small>${costTxt(c)}</small></span></button>`}).join('')}<button class="btn ghost" id="cbx">Stäng</button>`);
     document.getElementById('cbx').onclick=closeCaveSheet;
     document.querySelectorAll('#cvov [data-k]').forEach(o=>o.onclick=()=>caveCall('cave_build',{p_floor:f,p_slot:sl,p_kind:o.dataset.k}))});
-  root.querySelectorAll('[data-room]').forEach(b=>b.onclick=()=>openRoom(+b.dataset.room));
+  root.querySelectorAll('[data-room]').forEach(b=>{b.onclick=()=>openRoom(+b.dataset.room);b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openRoom(+b.dataset.room)}}});
   caveFlag='';clearInterval(caveT);caveT=setInterval(tickCave,1000);
+}
+function paintAnim(id,oldc){
+  const r=document.querySelector('[data-room="'+id+'"]');if(!r||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))return;
+  try{r.scrollIntoView({block:'center',behavior:'smooth'})}catch(e){}
+  const w=r.querySelector('.rw'),ov=el('div',{class:'cvpaint'}),br=el('div',{class:'cvbrush'},'🖌️'),pt=el('div',{class:'cvpainter'},'🧑‍🎨');
+  ov.style.background=CC[oldc]||CC.sand;w.appendChild(ov);r.appendChild(br);r.appendChild(pt);
+  setTimeout(()=>{ov.remove();br.remove();pt.remove()},1900);
 }
 function showFound(d){
   const parts=[];if(d.stone)parts.push('+'+d.stone+' 🪨');if(d.metal)parts.push('+'+d.metal+' ⚙️');if(d.crystal)parts.push('+'+d.crystal+' 💎');
@@ -638,7 +683,7 @@ function openRoom(id){
   q('#rx').onclick=closeCaveSheet;
   q('#rnok').onclick=()=>caveCall('cave_rename_room',{p_room:id,p_name:q('#rn').value},again);
   const u=q('#rup');if(u)u.onclick=()=>caveCall('cave_upgrade',{p_room:id},again);
-  document.querySelectorAll('#cvov [data-col]').forEach(b=>b.onclick=()=>caveCall('cave_paint',{p_room:id,p_color:b.dataset.col},again));
+  document.querySelectorAll('#cvov [data-col]').forEach(b=>b.onclick=async()=>{const old=r.color;if(b.dataset.col===old)return;const {error}=await caveCall('cave_paint',{p_room:id,p_color:b.dataset.col});if(!error)setTimeout(()=>paintAnim(id,old),60)});
   document.querySelectorAll('#cvov [data-dec]').forEach(b=>b.onclick=()=>caveCall('cave_decorate',{p_room:id,p_kind:b.dataset.dec||null},again));
 }
 function tickCave(){
